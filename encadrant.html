@@ -1398,9 +1398,24 @@ function generateGrilleVierge(atelierIdOrAll) {
         // Saut de page si nécessaire
         if (y > H - 35) { doc.addPage(); y = MT; }
 
-        const rowH = 20; // hauteur de ligne critère
-        const colNivW = CW * 0.17; // largeur colonne niveau
+        // Hauteur dynamique selon longueur des descriptions
+        const colNivW = CW * 0.195; // 4 colonnes niveau
         const labelW  = CW - 4 * colNivW;
+        const descs = item.cr.descriptions || [];
+        // Calculer hauteur max nécessaire pour les descriptions
+        let maxDescLines = 0;
+        PDF_NIVEAUX.forEach(function(niv, ni) {
+          const d = descs[ni] || '';
+          if (d) {
+            const dl = doc.splitTextToSize(d, colNivW - 3);
+            maxDescLines = Math.max(maxDescLines, dl.length);
+          }
+        });
+        const descH = maxDescLines > 0 ? Math.max(maxDescLines * 4.2 + 6, 20) : 14;
+        const rowH = descH; // hauteur dynamique
+
+        // Saut de page anticipé
+        if (y + rowH > H - 30) { doc.addPage(); y = MT; }
 
         // Fond alternance
         if (idx % 2 === 0) {
@@ -1412,30 +1427,38 @@ function generateGrilleVierge(atelierIdOrAll) {
         doc.setDrawColor(220,215,208); doc.setLineWidth(0.15);
         doc.rect(ML, y, CW, rowH, 'S');
 
-        // Numéro + label critère
-        doc.setTextColor(100,96,90); doc.setFont('helvetica','bold'); doc.setFontSize(7);
-        doc.text('C' + String(idx+1).padStart(2,'0'), ML+2, y+4);
+        // Numéro
+        doc.setTextColor(140,136,130); doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+        doc.text('C' + String(idx+1).padStart(2,'0'), ML+2, y+5);
+
+        // Label critère (colonne gauche)
         doc.setTextColor(28,26,22); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-        const labelLines = doc.splitTextToSize(item.cr.label || '', labelW-8);
-        doc.text(labelLines, ML+10, y+4);
+        const labelLines = doc.splitTextToSize(item.cr.label || '', labelW - 10);
+        doc.text(labelLines, ML+10, y+5);
 
         // Colonnes niveaux avec descriptions
         PDF_NIVEAUX.forEach(function(niv, ni) {
           const nx = ML + labelW + ni * colNivW;
+          // Bande couleur en haut de chaque colonne
+          doc.setFillColor(niv.color[0], niv.color[1], niv.color[2]);
+          doc.rect(nx, y, colNivW, 2.5, 'F');
           // Séparateur vertical
-          doc.setDrawColor(220,215,208); doc.setLineWidth(0.15);
-          doc.line(nx, y, nx, y+rowH);
-          // Description du niveau pour ce critère
-          const desc = (item.cr.descs && item.cr.descs[ni]) ? item.cr.descs[ni] : '';
+          doc.setDrawColor(200,196,190); doc.setLineWidth(0.2);
+          doc.line(nx, y, nx, y + rowH);
+          // Description du niveau
+          const desc = descs[ni] || '';
           if (desc) {
-            doc.setTextColor(80,77,72); doc.setFont('helvetica','normal'); doc.setFontSize(6);
-            const descLines = doc.splitTextToSize(desc, colNivW-2);
-            doc.text(descLines.slice(0,3), nx+1, y+3.5);
+            doc.setTextColor(55,52,48);
+            doc.setFont('helvetica','normal');
+            doc.setFontSize(6.2);
+            const descLines = doc.splitTextToSize(desc, colNivW - 3);
+            doc.text(descLines, nx + 1.5, y + 6);
+          } else {
+            // Pas de description = case à cocher
+            doc.setDrawColor(niv.color[0], niv.color[1], niv.color[2]);
+            doc.setLineWidth(0.5);
+            doc.rect(nx + colNivW/2 - 3, y + rowH/2 - 3, 6, 5, 'S');
           }
-          // Case à cocher en bas de la cellule
-          doc.setDrawColor(niv.color[0], niv.color[1], niv.color[2]);
-          doc.setLineWidth(0.4);
-          doc.rect(nx + colNivW/2 - 2.5, y + rowH - 5, 5, 4, 'S');
         });
 
         y += rowH;
