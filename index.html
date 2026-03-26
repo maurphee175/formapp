@@ -189,38 +189,48 @@ iframe.active { display: block; opacity: 1; }
 }
 </style>
 
-<!-- ── SUPABASE dans index.html pour charger les formateurs ── -->
+
+<!-- ── SUPABASE index.html ── -->
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-var _sbIdx = null;
-(function() {
-  var _sbIdx = null;
+// Client Supabase global accessible partout dans index.html
+var _sbIndex = null;
+try {
+  _sbIndex = supabase.createClient('https://dxjdirhfcdtvdsayhigm.supabase.co', 'sb_publishable_7sHrBN4HyQ5M0MxxQUbE1g_GyP6Qw1T');
+} catch(e) { console.warn('[Index Supabase] init:', e); }
+
+function getSessionKeyIndex() {
+  var k = localStorage.getItem('formapp_session_key');
+  if (!k) { k = 'session_' + Date.now(); localStorage.setItem('formapp_session_key', k); }
+  return k;
+}
+
+// Charger les formateurs depuis Supabase et les stocker en localStorage
+async function loadFormateursFromSupabase() {
+  if (!_sbIndex) { console.warn('[Index] _sbIndex null'); return; }
   try {
-    _sbIdx = supabase.createClient('https://dxjdirhfcdtvdsayhigm.supabase.co', 'sb_publishable_7sHrBN4HyQ5M0MxxQUbE1g_GyP6Qw1T');
-  } catch(e) { console.warn('[Index] Supabase init:', e); }
+    var res = await _sbIndex
+      .from('formapp_sessions')
+      .select('fmt_data')
+      .eq('session_key', getSessionKeyIndex())
+      .single();
+    if (res.error) { console.warn('[Index] pull formateurs:', res.error.message); return; }
+    if (res.data && res.data.fmt_data && res.data.fmt_data !== '[]') {
+      localStorage.setItem('formapp_formateurs', res.data.fmt_data);
+      var list = JSON.parse(res.data.fmt_data);
+      console.log('[Index] Formateurs chargés depuis Supabase:', list.length, 'compte(s)');
+      return list;
+    } else {
+      console.warn('[Index] fmt_data vide dans Supabase');
+    }
+  } catch(e) { console.warn('[Index] loadFormateurs erreur:', e); }
+  return [];
+}
 
-  function getSessionKeyIdx() {
-    var k = localStorage.getItem('formapp_session_key');
-    if (!k) { k = 'session_' + Date.now(); localStorage.setItem('formapp_session_key', k); }
-    return k;
-  }
-
-  // Charger les formateurs depuis Supabase au démarrage
-  async function loadFormateursFromSupabase() {
-    if (!_sbIdx) return;
-    try {
-      var res = await _sbIdx.from('formapp_sessions')
-        .select('fmt_data').eq('session_key', getSessionKeyIdx()).single();
-      if (res.data && res.data.fmt_data && res.data.fmt_data !== '[]') {
-        localStorage.setItem('formapp_formateurs', res.data.fmt_data);
-        console.log('[Index] Formateurs chargés depuis Supabase:', JSON.parse(res.data.fmt_data).length);
-      }
-    } catch(e) { console.warn('[Index] loadFormateurs:', e); }
-  }
-
-  window.loadFormateursFromSupabase = loadFormateursFromSupabase;
-  document.addEventListener('DOMContentLoaded', loadFormateursFromSupabase);
-})();
+// Charger dès le démarrage
+document.addEventListener('DOMContentLoaded', function() {
+  loadFormateursFromSupabase();
+});
 </script>
 </head>
 <body>
