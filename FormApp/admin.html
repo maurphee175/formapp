@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administration · Formation de Formateur</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Syne+Mono&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf9f7;
+    --surface: #ffffff;
+    --surface2: #f3f1ee;
+    --border: #e5e2dc;
+    --border2: #ccc8c0;
+    --ink: #1a1814;
+    --ink2: #5a5650;
+    --ink3: #9a9690;
+    --accent: #1a1814;
+    --accent-warm: #c44a1a;
+    --green: #1e6b3c;
+    --green-soft: #e6f4ec;
+    --orange: #b85c14;
+    --orange-soft: #fef0e5;
+    --red: #b83020;
+    --red-soft: #fcecea;
+    --blue: #1a3d6b;
+    --blue-soft: #e6edf6;
+    --gold: #a07800;
+    --gold-soft: #fef8e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+  /* SIDEBAR LAYOUT */
+  .app-shell { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    background: var(--accent);
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .sidebar-brand {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar-brand h1 {
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.14em; color: white;
+  }
+  .sidebar-brand p {
+    font-size: 0.68rem; color: rgba(255,255,255,0.35);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px;
+  }
+
+  .nav-section { padding: 16px 0; }
+  .nav-section-label {
+    padding: 0 16px 8px; font-size: 0.6rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.3);
+  }
+  .nav-item {
+    padding: 9px 20px; display: flex; align-items: center; gap: 10px;
+    font-size: 0.82rem; font-weight: 500; color: rgba(255,255,255,0.55);
+    cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.06); }
+  .nav-item.active { color: white; border-left-color: var(--accent-warm); background: rgba(255,255,255,0.08); }
+  .nav-item svg { flex-shrink: 0; }
+  .nav-dot { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+
+  .sidebar-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-footer p { font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+  .sidebar-footer strong { color: rgba(255,255,255,0.55); }
+
+  /* OTHER PAGES LINK */
+  .nav-ext { display: flex; flex-direction: column; gap: 0; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); }
+
+  /* MAIN */
+  .main-content { flex: 1; overflow-y: auto; }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--ink); }
+  .topbar-meta { font-size: 0.75rem; color: var(--ink3); display: flex; align-items: center; gap: 12px; }
+  .topbar-actions { display: flex; gap: 10px; }
+  .btn { padding: 8px 18px; border-radius: 6px; font-family: 'Instrument Sans', sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.08em; border: none; }
+  .btn-dark { background: var(--ink); color: white; }
+  .btn-dark:hover { background: #333; }
+  .btn-outline { background: transparent; color: var(--ink2); border: 1px solid var(--border); }
+  .btn-outline:hover { border-color: var(--ink); color: var(--ink); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { background: #9b1f12; }
+  .btn-success { background: var(--green); color: white; }
+  .btn-success:hover { background: #145a2c; }
+
+  /* VIEWS */
+  .view { display: none; padding: 28px 32px 48px; }
+  .view.active { display: block; }
+
+  /* KPI ROW */
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 28px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 6px;
+    position: relative; overflow: hidden;
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .kpi-card.total::before { background: var(--ink); }
+  .kpi-card.admis::before { background: var(--green); }
+  .kpi-card.refuse::before { background: var(--red); }
+  .kpi-card.encours::before { background: var(--orange); }
+  .kpi-card.absent::before { background: var(--ink3); }
+  .kpi-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink3); font-weight: 700; }
+  .kpi-num { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; line-height: 1; }
+  .kpi-num.g { color: var(--green); }
+  .kpi-num.r { color: var(--red); }
+  .kpi-num.o { color: var(--orange); }
+  .kpi-num.g3 { color: var(--ink3); }
+  .kpi-sub { font-size: 0.7rem; color: var(--ink3); }
+
+  /* TABLE */
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 24px; }
+  .table-card-header {
+    padding: 16px 22px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .table-card-title { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink2); }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th { padding: 11px 16px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink3); background: var(--surface2); cursor: pointer; white-space: nowrap; }
+  thead th:hover { color: var(--ink); }
+  tbody tr { border-top: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:hover { background: var(--surface2); }
+  td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
+
+  .td-candidate { display: flex; align-items: center; gap: 11px; }
+  .td-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+  .td-name { font-weight: 600; font-size: 0.85rem; }
+  .td-id { font-family: 'Syne Mono', monospace; font-size: 0.67rem; color: var(--ink3); }
+
+  .score-pill { font-family: 'Syne Mono', monospace; font-size: 0.78rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+  .score-pill.high { background: var(--green-soft); color: var(--green); }
+  .score-pill.mid { background: var(--orange-soft); color: var(--orange); }
+  .score-pill.low { background: var(--red-soft); color: var(--red); }
+  .score-pill.none { background: var(--surface2); color: var(--ink3); }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .badge.admis { background: var(--green-soft); color: var(--green); }
+  .badge.refuse { background: var(--red-soft); color: var(--red); }
+  .badge.en-cours { background: var(--blue-soft); color: var(--blue); }
+  .badge.absent { background: var(--surface2); color: var(--ink3); }
+
+  .td-actions { display: flex; gap: 6px; }
+  .icon-btn { width: 28px; height: 28px; border: 1px solid var(--border); background: transparent; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink3); transition: all 0.15s; }
+  .icon-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
+
+  /* EDITABLE */
+  .td-editable { cursor: pointer; border-bottom: 1px dashed transparent; transition: border-color 0.15s; }
+  .td-editable:hover { border-bottom-color: var(--border2); }
+
+  /* CONFIG VIEW */
+  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .config-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .config-card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .config-card-title { font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink2); }
+  .config-body { padding: 20px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink3); margin-bottom: 6px; }
+  .form-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-family: 'Instrument Sans', sans-serif; font-size: 0.85rem; color: var(--ink); outline: none; transition: border-color 0.15s; }
+  .form-input:focus { border-color: var(--accent-warm); background: white; }
+
+  .atelier-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .atelier-row:last-child { border-bottom: none; }
+  .atelier-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .coeff-input { width: 60px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); font-family: 'Syne Mono', monospace; font-size: 0.82rem; text-align: center; outline: none; }
+  .coeff-input:focus { border-color: var(--accent-warm); }
+
+  /* CHARTS */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .chart-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .chart-title { font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink2); }
+  .chart-body { padding: 20px; }
+
+  .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; }
+  .bar-label { font-size: 0.75rem; color: var(--ink2); min-width: 120px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-wrap { flex: 1; height: 20px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+  .bar-val { font-family: 'Syne Mono', monospace; font-size: 0.68rem; font-weight: 600; color: white; }
+
+  .donut-row { display: flex; gap: 20px; align-items: center; justify-content: center; padding: 10px 0; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── CRITÈRES VIEW ── */
+  .crit-editor-layout { display: grid; grid-template-columns: 240px 1fr; gap: 0; min-height: 500px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
+
+  .crit-atelier-list { border-right: 1px solid var(--border); background: var(--surface2); }
+  .crit-atelier-list-header { padding: 14px 16px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink3); border-bottom: 1px solid var(--border); }
+  .crit-at-item { display: flex; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer; border-left: 3px solid transparent; border-bottom: 1px solid var(--border); transition: all 0.13s; }
+  .crit-at-item:hover { background: var(--surface); }
+  .crit-at-item.active { background: var(--surface); border-left-color: var(--accent-warm); }
+  .crit-at-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+  .crit-at-name { font-size: 0.8rem; font-weight: 600; flex: 1; }
+  .crit-at-count { font-family: 'Syne Mono', monospace; font-size: 0.65rem; color: var(--ink3); }
+
+  .crit-editor-panel { padding: 20px 24px 32px; overflow-y: auto; }
+  .crit-panel-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .crit-panel-icon { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+  .crit-panel-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
+  .crit-panel-meta { font-size: 0.72rem; color: var(--ink3); margin-top: 2px; }
+  .crit-panel-actions { margin-left: auto; display: flex; gap: 8px; }
+
+  .ss-block { margin-bottom: 24px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .ss-header { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .ss-title-input { flex: 1; border: none; background: transparent; font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink2); outline: none; }
+  .ss-title-input:focus { color: var(--ink); }
+  .ss-header-actions { display: flex; gap: 6px; }
+  .ss-btn { padding: 4px 10px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--ink2); text-transform: uppercase; letter-spacing: 0.07em; transition: all 0.13s; }
+  .ss-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .ss-btn.danger:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
+  .ss-btn.add { border-color: var(--green); color: var(--green); background: var(--green-soft); }
+  .ss-btn.add:hover { background: var(--green); color: white; }
+
+  .crit-row { padding: 14px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .crit-row:last-child { border-bottom: none; }
+  .crit-row-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .crit-row-num { font-family: 'Syne Mono', monospace; font-size: 0.62rem; color: var(--ink3); background: var(--surface2); padding: 2px 6px; border-radius: 3px; flex-shrink: 0; margin-top: 4px; }
+  .crit-label-input { flex: 1; border: none; border-bottom: 1.5px solid var(--border); background: transparent; font-family: 'Instrument Sans', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--ink); outline: none; padding: 3px 0; transition: border-color 0.13s; }
+  .crit-label-input:focus { border-bottom-color: var(--accent-warm); }
+  .crit-row-del { width: 26px; height: 26px; border: 1px solid var(--border); border-radius: 5px; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink3); flex-shrink: 0; transition: all 0.13s; }
+  .crit-row-del:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
+
+  .desc-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+  .desc-cell { display: flex; flex-direction: column; gap: 3px; }
+  .desc-cell-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; padding: 2px 6px; border-radius: 3px; }
+  .desc-cell textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px; font-family: 'Instrument Sans', sans-serif; font-size: 0.72rem; color: var(--ink2); outline: none; resize: vertical; min-height: 72px; line-height: 1.5; background: var(--bg); transition: border-color 0.13s; }
+  .desc-cell textarea:focus { border-color: var(--accent-warm); background: white; }
+
+  .add-crit-btn { display: flex; align-items: center; gap: 7px; padding: 10px 14px; width: 100%; border: none; background: var(--surface2); cursor: pointer; font-family: 'Instrument Sans', sans-serif; font-size: 0.78rem; color: var(--ink3); transition: all 0.13s; border-top: 1px dashed var(--border); }
+  .add-crit-btn:hover { background: var(--green-soft); color: var(--green); }
+
+  .add-ss-btn { display: flex; align-items: center; gap: 7px; padding: 11px 14px; width: 100%; border: 1px dashed var(--border); border-radius: 8px; background: transparent; cursor: pointer; font-family: 'Instrument Sans', sans-serif; font-size: 0.78rem; color: var(--ink3); transition: all 0.13s; margin-top: 8px; }
+  .add-ss-btn:hover { border-color: var(--accent-warm); color: var(--accent-warm); background: #fef6f3; }
+
+  /* ── MODAL CRITÈRE ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(26,24,20,0.5); backdrop-filter: blur(3px); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 100%; max-width: 460px; transform: translateY(12px); transition: transform 0.2s; box-shadow: 0 16px 50px rgba(0,0,0,0.18); }
+  .modal-overlay.open .modal { transform: none; }
+  .modal h2 { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; }
+  .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+
+  /* SEARCH */
+  .search-bar { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 14px; }
+  .search-bar svg { color: var(--ink3); flex-shrink: 0; }
+  .search-bar input { border: none; background: transparent; font-family: 'Instrument Sans', sans-serif; font-size: 0.84rem; color: var(--ink); outline: none; width: 200px; }
+  .search-bar input::placeholder { color: var(--ink3); }
+
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: white; padding: 10px 20px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; z-index: 300; }
+  .toast.show { opacity: 1; transform: none; }
+
+  @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(3,1fr); } .config-grid, .charts-row { grid-template-columns: 1fr; } }
+</style>
+
+<!-- ═══════════════════════════════════════════════════
+     SUPABASE CONFIG — Remplacez les deux valeurs ci-dessous
+     par celles trouvées dans Supabase > Settings > API
+═══════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ┌─────────────────────────────────────────────────────┐
+// │  ÉTAPE 5 — Collez vos valeurs Supabase ici          │
+// └─────────────────────────────────────────────────────┘
+const SUPABASE_URL  = 'https://VOTRE_URL.supabase.co';   // ← remplacez
+const SUPABASE_ANON_KEY = 'VOTRE_CLE_ANON';             // ← remplacez
+
+// ── Initialisation du client Supabase ──
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── Clés de stockage local ──
+const SHARED_KEY_SB = 'formapp_data';
+const CRIT_KEY_SB   = 'formapp_criteres';
+const QCM_KEY_SB    = 'formapp_qcm_results';
+const CODES_KEY_SB  = 'formapp_qcm_codes';
+const SESSION_TABLE = 'formapp_sessions';   // table Supabase unique
+
+// ════════════════════════════════════════════════════════
+// COUCHE DE SYNCHRONISATION
+// Principe : localStorage = cache immédiat
+//            Supabase     = source de vérité partagée
+// ════════════════════════════════════════════════════════
+
+// Identifiant de session unique (clé de partitionnement des données)
+// Utilise la promo+date ou un UUID fixe stocké localement
+function getSessionKey() {
+  let k = localStorage.getItem('formapp_session_key');
+  if (!k) {
+    k = 'session_' + Date.now();
+    localStorage.setItem('formapp_session_key', k);
+  }
+  return k;
+}
+
+// ── PUSH : envoie les données locales vers Supabase ──
+async function pushToSupabase() {
+  try {
+    const sessionKey = getSessionKey();
+    const payload = {
+      session_key: sessionKey,
+      shared_data: localStorage.getItem(SHARED_KEY_SB) || '{}',
+      crit_data:   localStorage.getItem(CRIT_KEY_SB)   || '{}',
+      qcm_results: localStorage.getItem(QCM_KEY_SB)    || '{}',
+      qcm_codes:   localStorage.getItem(CODES_KEY_SB)  || '{}',
+      updated_at:  new Date().toISOString(),
+    };
+    const { error } = await _sb.from(SESSION_TABLE).upsert(payload, { onConflict: 'session_key' });
+    if (error) console.warn('[Supabase push]', error.message);
+  } catch(e) { console.warn('[Supabase push error]', e); }
+}
+
+// ── PULL : charge les données depuis Supabase vers le localStorage ──
+async function pullFromSupabase() {
+  try {
+    const sessionKey = getSessionKey();
+    const { data, error } = await _sb.from(SESSION_TABLE)
+      .select('*')
+      .eq('session_key', sessionKey)
+      .single();
+    if (error) { console.warn('[Supabase pull]', error.message); return false; }
+    if (!data) return false;
+
+    if (data.shared_data && data.shared_data !== '{}')
+      localStorage.setItem(SHARED_KEY_SB, data.shared_data);
+    if (data.crit_data && data.crit_data !== '{}')
+      localStorage.setItem(CRIT_KEY_SB, data.crit_data);
+    if (data.qcm_results && data.qcm_results !== '{}')
+      localStorage.setItem(QCM_KEY_SB, data.qcm_results);
+    if (data.qcm_codes && data.qcm_codes !== '{}')
+      localStorage.setItem(CODES_KEY_SB, data.qcm_codes);
+    return true;
+  } catch(e) { console.warn('[Supabase pull error]', e); return false; }
+}
+
+// ── Abonnement temps réel : actualise si un autre appareil modifie ──
+function subscribeRealtime(onUpdate) {
+  const sessionKey = getSessionKey();
+  _sb.channel('formapp-realtime')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: SESSION_TABLE,
+      filter: `session_key=eq.${sessionKey}`,
+    }, async (payload) => {
+      const d = payload.new;
+      if (d.shared_data) localStorage.setItem(SHARED_KEY_SB, d.shared_data);
+      if (d.crit_data)   localStorage.setItem(CRIT_KEY_SB,   d.crit_data);
+      if (d.qcm_results) localStorage.setItem(QCM_KEY_SB,    d.qcm_results);
+      if (d.qcm_codes)   localStorage.setItem(CODES_KEY_SB,  d.qcm_codes);
+      if (typeof onUpdate === 'function') onUpdate();
+    })
+    .subscribe();
+}
+
+// ── saveAndSync : remplace les saveData() existants ──
+// Appeler après chaque modification locale pour syncer vers Supabase
+let _syncTimer = null;
+function saveAndSync() {
+  // Debounce : attend 800ms d'inactivité avant d'envoyer
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => pushToSupabase(), 800);
+}
+
+// ── Auto-pull au chargement de la page ──
+(async function initSupabase() {
+  const indicator = document.createElement('div');
+  indicator.id = 'sb-indicator';
+  indicator.style.cssText = 'position:fixed;bottom:60px;right:20px;z-index:9999;' +
+    'background:rgba(10,12,16,0.8);color:#4ade80;padding:8px 14px;' +
+    'border-radius:8px;font-family:monospace;font-size:11px;' +
+    'border:1px solid rgba(74,222,128,0.3);display:none;';
+  document.body.appendChild(indicator);
+
+  function showIndicator(msg, color='#4ade80') {
+    indicator.style.color = color;
+    indicator.textContent = msg;
+    indicator.style.display = 'block';
+    setTimeout(() => { indicator.style.display = 'none'; }, 2500);
+  }
+
+  // Vérifier si Supabase est configuré
+  if (SUPABASE_URL.includes('VOTRE_URL')) {
+    console.info('[FormApp] Mode local — Supabase non configuré');
+    return; // Fonctionne en mode localStorage uniquement
+  }
+
+  showIndicator('⟳ Synchronisation...', '#fbbf24');
+  const ok = await pullFromSupabase();
+  if (ok) {
+    showIndicator('✓ Données synchronisées');
+    // Déclencher un refresh si la page a déjà rendu des données
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof render === 'function') render();
+    if (typeof app_init === 'function') app_init();
+  }
+
+  // Écouter les changements en temps réel
+  subscribeRealtime(() => {
+    showIndicator('↻ Mise à jour reçue');
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof render === 'function') render();
+    if (typeof app_init === 'function') app_init();
+  });
+})();
+</script>
+
+</head>
+<body>
+
+<div class="app-shell">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <h1>FormApp</h1>
+      <p>Administration</p>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Tableau de bord</div>
+      <a class="nav-item active" onclick="showView('dashboard', this)">
+        <div class="nav-dot">📊</div> Vue globale
+      </a>
+      <a class="nav-item" onclick="showView('candidats', this)">
+        <div class="nav-dot">👤</div> Candidats
+      </a>
+      <a class="nav-item" onclick="showView('resultats', this)">
+        <div class="nav-dot">📋</div> Résultats complets
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Configuration</div>
+      <a class="nav-item" onclick="showView('config', this)">
+        <div class="nav-dot">⚙️</div> Paramètres session
+      </a>
+      <a class="nav-item" onclick="showView('ateliers', this)">
+        <div class="nav-dot">🧩</div> Ateliers
+      </a>
+      <a class="nav-item" onclick="showView('criteres', this)">
+        <div class="nav-dot">✏️</div> Critères
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Interfaces</div>
+      <div class="nav-ext">
+        <a class="nav-item" href="apprenant.html"><div class="nav-dot">🎓</div> Vue Apprenant</a>
+        <div class="nav-item" onclick="openApprenantEditor()" style="cursor:pointer" title="Ouvrir espace apprenant - mode edition"><div class="nav-dot">✏️</div> Modifier ressources</div>
+        <a class="nav-item" href="encadrant.html"><div class="nav-dot">✏️</div> Vue Encadrant</a>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <p>Session active<br><strong id="sfPromo">—</strong></p>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbarTitle">Vue globale</div>
+        <div class="topbar-meta" id="topbarMeta">—</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline" onclick="exportCSV()">↓ Exporter CSV</button>
+        <button class="btn btn-dark" onclick="openAddModal()">+ Ajouter candidat</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view active" id="view-dashboard">
+      <div class="kpi-row" id="kpiRow"></div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-header"><div class="chart-title">Moyennes par atelier</div></div>
+          <div class="chart-body"><div class="bar-chart" id="chartAteliers"></div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><div class="chart-title">Distribution des statuts</div></div>
+          <div class="chart-body" id="chartStatuts"></div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header">
+          <div class="table-card-title">Récapitulatif candidats</div>
+          <div class="search-bar">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" placeholder="Rechercher…" id="searchDash" oninput="renderDashTable()">
+          </div>
+        </div>
+        <table><thead><tr>
+          <th>Candidat</th>
+          <th>Moyenne ↕</th>
+          <th>Statut</th>
+          <th>Ateliers saisis</th>
+          <th>Commentaire</th>
+        </tr></thead>
+        <tbody id="dashTableBody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- CANDIDATS VIEW -->
+    <div class="view" id="view-candidats">
+      <div class="table-card">
+        <div class="table-card-header">
+          <div class="table-card-title">Gestion des candidats</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div class="search-bar">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" placeholder="Rechercher…" id="searchCand" oninput="renderCandTable()">
+            </div>
+            <button class="btn btn-outline" onclick="openCredentialsModal()" title="Voir les identifiants de tous les stagiaires" style="font-size:0.72rem;padding:5px 14px">
+              📧 Identifiants stagiaires
+            </button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Candidat</th><th>Moyenne</th><th>Statut</th><th>Commentaire</th><th>Actions</th></tr></thead>
+          <tbody id="candTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RESULTATS VIEW -->
+    <div class="view" id="view-resultats">
+      <div class="table-card">
+        <div class="table-card-header">
+          <div class="table-card-title">Grille complète des résultats</div>
+          <button class="btn btn-outline" onclick="exportCSV()">↓ CSV</button>
+        </div>
+        <table>
+          <thead id="resultsThead"></thead>
+          <tbody id="resultsBody"></tbody>
+          <tfoot id="resultsFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONFIG VIEW -->
+    <div class="view" id="view-config">
+      <div class="config-grid">
+        <div class="config-card">
+          <div class="config-card-header"><div class="config-card-title">Informations de session</div></div>
+          <div class="config-body">
+            <div class="form-group"><label class="form-label">Date de la journée</label><input type="date" class="form-input" id="cfgDate" onchange="saveCfg()"></div>
+            <div class="form-group"><label class="form-label">Formateur référent</label><input type="text" class="form-input" id="cfgFormateur" placeholder="Nom du formateur" onchange="saveCfg()"></div>
+            <div class="form-group"><label class="form-label">Numéro de promotion</label><input type="text" class="form-input" id="cfgPromo" placeholder="ex: P2026-03" onchange="saveCfg()"></div>
+            <div class="form-group"><label class="form-label">Lieu</label><input type="text" class="form-input" id="cfgLieu" placeholder="ex: Centre de formation Paris" onchange="saveCfg()"></div>
+            <button class="btn btn-dark" style="margin-top:8px" onclick="saveCfg()">Enregistrer</button>
+          </div>
+        </div>
+        <div class="config-card">
+          <div class="config-card-header"><div class="config-card-title">Seuils de validation</div></div>
+          <div class="config-body">
+            <div class="form-group"><label class="form-label">Note minimale d'admission</label><input type="number" class="form-input" id="cfgMinAdmis" value="12" min="0" max="20" onchange="saveCfg()"></div>
+            <div class="form-group"><label class="form-label">Note d'alerte (orange)</label><input type="number" class="form-input" id="cfgMinOrange" value="8" min="0" max="20" onchange="saveCfg()"></div>
+            <div class="form-group"><label class="form-label">Mode de calcul de la moyenne</label>
+              <select class="form-input" id="cfgMode" onchange="saveCfg()">
+                <option value="pondere">Moyenne pondérée (coefficients)</option>
+                <option value="simple">Moyenne simple</option>
+              </select>
+            </div>
+            <div style="padding:14px;background:var(--surface2);border-radius:8px;font-size:0.78rem;color:var(--ink2);line-height:1.6;margin-top:8px">
+              <strong>Règle actuelle :</strong> Un candidat est <span style="color:var(--green);font-weight:600">admis</span> si sa moyenne pondérée est ≥ 12/20. Il est <span style="color:var(--orange);font-weight:600">en observation</span> entre 8 et 12, et <span style="color:var(--red);font-weight:600">refusé</span> sous 8.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATELIERS VIEW -->
+    <div class="view" id="view-ateliers">
+      <div class="config-grid">
+        <div class="config-card">
+          <div class="config-card-header" style="display:flex;align-items:center;justify-content:space-between">
+            <div class="config-card-title">Ateliers d'évaluation</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-outline" style="font-size:0.72rem;padding:5px 12px;color:var(--orange);border-color:var(--orange-soft)" onclick="resetToOfficialAteliers()" title="Restaurer les 7 ateliers officiels">↺ Restaurer</button>
+              <button class="btn btn-outline" style="font-size:0.72rem;padding:5px 12px" onclick="addAtelier()">+ Ajouter</button>
+            </div>
+          </div>
+          <div class="config-body">
+            <div id="ateliersList"></div>
+          </div>
+        </div>
+        <div class="config-card">
+          <div class="config-card-header"><div class="config-card-title">Aperçu des coefficients</div></div>
+          <div class="config-body" id="coeffPreview"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRITÈRES VIEW -->
+    <div class="view" id="view-criteres">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700">Éditeur de critères d'évaluation</div>
+          <div style="font-size:0.75rem;color:var(--ink3);margin-top:3px">Modifiez les critères, reformulez les descriptions par niveau, réorganisez les sous-sections.</div>
+        </div>
+        <button class="btn btn-dark" onclick="saveAllCriteres()">💾 Enregistrer les modifications</button>
+      </div>
+      <div class="crit-editor-layout">
+        <div class="crit-atelier-list">
+          <div class="crit-atelier-list-header">Ateliers</div>
+          <div id="critAtelierList"></div>
+        </div>
+        <div class="crit-editor-panel" id="critEditorPanel">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;color:var(--ink3);gap:10px">
+            <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <p style="font-size:0.8rem">Sélectionnez un atelier pour éditer ses critères</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- VUE RESSOURCES STAGIAIRES -->
+    <div class="view" id="view-ressources">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700">Ressources stagiaires</div>
+          <div style="font-size:0.75rem;color:var(--ink3);margin-top:3px">Liens, documents et videos visibles dans l espace stagiaire.</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-outline" onclick="openApprenantEditor()" style="font-size:0.75rem">&#9998; Editer en direct</button>
+          <button class="btn btn-dark" onclick="saveResources()">&#128190; Enregistrer</button>
+        </div>
+      </div>
+      <div class="config-grid">
+        <div class="config-card">
+          <div class="config-card-header"><div class="config-card-title">Application de revision</div></div>
+          <div class="config-body">
+            <div class="form-group"><label class="form-label">URL</label><input type="url" class="form-input" id="res_revUrl" placeholder="https://..."></div>
+            <div class="form-group"><label class="form-label">Nom affiche</label><input type="text" class="form-input" id="res_revTitle" placeholder="Application de revision PSC1"></div>
+            <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="res_revDesc" style="min-height:70px;resize:vertical" placeholder="Revisez les gestes de secourisme..."></textarea></div>
+          </div>
+        </div>
+        <div class="config-card">
+          <div class="config-card-header" style="display:flex;align-items:center;justify-content:space-between">
+            <div class="config-card-title">Documents, videos et liens</div>
+            <button class="btn btn-outline" style="font-size:0.72rem;padding:5px 12px" onclick="addResourceItem()">+ Ajouter</button>
+          </div>
+          <div class="config-body" style="padding:0">
+            <div id="res_itemsList" style="max-height:420px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL ADD CANDIDAT -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>Ajouter un candidat</h2>
+    <div class="modal-row">
+      <div class="form-group"><label class="form-label">Prénom</label><input type="text" class="form-input" id="mPrenom" placeholder="Marie"></div>
+      <div class="form-group"><label class="form-label">Nom</label><input type="text" class="form-input" id="mNom" placeholder="Dupont"></div>
+    </div>
+    <div class="modal-row">
+      <div class="form-group"><label class="form-label">Numéro candidat</label><input type="text" class="form-input" id="mId" placeholder="C-006"></div>
+      <div class="form-group"><label class="form-label">Statut initial</label>
+        <select class="form-input" id="mStatut">
+          <option value="en-cours">En cours</option>
+          <option value="absent">Absent</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="form-group"><label class="form-label">Mot de passe stagiaire</label><input type="text" class="form-input" id="mPassword" placeholder="ex: martin2026"></div>
+      <div class="form-group"><label class="form-label">E-mail (optionnel)</label><input type="email" class="form-input" id="mEmail" placeholder="prenom@email.fr"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Commentaire</label><input type="text" class="form-input" id="mComment" placeholder="Remarques…"></div>
+    <div style="background:var(--surface2);border-radius:6px;padding:10px 12px;font-size:0.75rem;color:var(--ink3);margin-bottom:14px;line-height:1.6">
+      💡 <b>Identifiant de connexion :</b> l'ID candidat (ex: C-001) ou prénom.nom<br>
+      Si le mot de passe est vide, il sera égal au prénom en minuscules par défaut.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-dark" onclick="addCandidat()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SHARED_KEY = 'formapp_data';
+const COLORS = ['#1a3d6b','#1e6b3c','#b85c14','#a07800','#6b1a6b','#1a6b6b'];
+const AV_COLORS = ['#3b6bdb','#2d9e5a','#e5721a','#c49a0a','#8b2dd4','#1a9e9e'];
+
+const defaultAteliers = [
+  { id: 'a1', nom: 'Démonstration du PCU — matériel et techniques', icon: '🩺', coeff: 2 },
+  { id: 'a2', nom: 'Démonstration du garrot tourniquet de fortune', icon: '🩹', coeff: 2 },
+  { id: 'a3', nom: 'Mise en situation — personne inconsciente qui respire', icon: '😮‍💨', coeff: 2 },
+  { id: 'a4', nom: 'Mise en situation — arrêt cardiaque', icon: '❤️', coeff: 3 },
+  { id: 'a5', nom: 'Mise en situation — hémorragie avec garrot', icon: '🔴', coeff: 2 },
+  { id: 'a6', nom: 'Mise en situation — étouffement nourrisson', icon: '👶', coeff: 2 },
+  { id: 'a7', nom: 'QCM théorique', icon: '📝', coeff: 1 },
+];
+const defaultCandidats = [
+  { id: 'C-001', prenom: 'Sophie', nom: 'Martin', scores: { 'a1': 14, 'a2': 16, 'a3': 12, 'a4': 15, 'a5': 18, 'a6': 13, 'a7': 16 }, statut: 'admis', commentaire: 'Très bonne communication, à l\'aise en groupe.' },
+  { id: 'C-002', prenom: 'Thomas', nom: 'Bernard', scores: { 'a1': 8, 'a2': 9, 'a3': 7, 'a4': 10, 'a5': 12, 'a6': 8, 'a7': 9 }, statut: 'refuse', commentaire: 'Difficultés sur les gestes techniques.' },
+  { id: 'C-003', prenom: 'Camille', nom: 'Dubois', scores: { 'a1': null, 'a2': null, 'a3': null, 'a4': null, 'a5': null, 'a6': null, 'a7': null }, statut: 'en-cours', commentaire: '' },
+  { id: 'C-004', prenom: 'Julien', nom: 'Lefebvre', scores: { 'a1': 13, 'a2': 11, 'a3': 14, 'a4': 12, 'a5': 16, 'a6': 14, 'a7': 15 }, statut: 'admis', commentaire: 'Bonne maîtrise du contenu.' },
+  { id: 'C-005', prenom: 'Amina', nom: 'Khelil', scores: { 'a1': null, 'a2': null, 'a3': null, 'a4': null, 'a5': null, 'a6': null, 'a7': null }, statut: 'absent', commentaire: 'Absence justifiée.' },
+];
+
+let data;
+
+function getData() {
+  const raw = localStorage.getItem(SHARED_KEY);
+  let d;
+  if (!raw) {
+    d = { ateliers: defaultAteliers, candidats: defaultCandidats, date: '2026-03-24', formateur: 'M. Leclerc', promo: 'P2026-03', lieu: '', minAdmis: 12, minOrange: 8 };
+    localStorage.setItem(SHARED_KEY, JSON.stringify(d));
+  } else {
+    d = JSON.parse(raw);
+  }
+
+  // S’assurer qu’on a toujours des ateliers — priorité : critData > appData > defaultAteliers
+  const critRaw = localStorage.getItem('formapp_criteres');
+  if (critRaw) {
+    try {
+      const crit = JSON.parse(critRaw);
+      if (crit.ateliers && crit.ateliers.length > 0) {
+        d.ateliers = crit.ateliers.map(a => ({ id:a.id, nom:a.nom, coeff:a.coeff||1, icon:a.icon||'📋' }));
+      }
+    } catch(e) {}
+  }
+
+  // Si toujours vide après tout ça, utiliser les ateliers officiels directement
+  if (!d.ateliers || d.ateliers.length === 0) {
+    d.ateliers = defaultAteliers;
+  }
+
+  // Garantir que chaque candidat a un slot de score pour chaque atelier
+  d.ateliers.forEach(a => {
+    d.candidats.forEach(c => {
+      if (!c.scores) c.scores = {};
+      if (!(a.id in c.scores)) c.scores[a.id] = null;
+    });
+  });
+
+  return d;
+}
+
+function saveData() {
+  localStorage.setItem(SHARED_KEY, JSON.stringify(data));
+  saveAndSync(); // sync Supabase
+  // Sync les noms/coefficients d’ateliers vers critData si elle existe
+  const critRaw = localStorage.getItem('formapp_criteres');
+  if (critRaw) {
+    try {
+      const crit = JSON.parse(critRaw);
+      if (crit.ateliers) {
+        data.ateliers.forEach(a => {
+          const ca = crit.ateliers.find(x => x.id === a.id);
+          if (ca) { ca.nom = a.nom; ca.coeff = a.coeff; }
+        });
+        localStorage.setItem('formapp_criteres', JSON.stringify(crit));
+      }
+    } catch(e) {}
+  }
+  showToast('Modifications enregistrées');
+}
+
+function getMoyenne(c) {
+  let pts = 0, coeff = 0;
+  data.ateliers.forEach(a => {
+    const v = c.scores[a.id];
+    if (v !== null && v !== undefined && v !== '') { pts += parseFloat(v) * a.coeff; coeff += a.coeff; }
+  });
+  return coeff > 0 ? pts / coeff : null;
+}
+
+function getScoreClass(v) {
+  if (v === null || v === undefined) return 'none';
+  if (v >= (data.minAdmis || 12)) return 'high';
+  if (v >= (data.minOrange || 8)) return 'mid';
+  return 'low';
+}
+
+// ── VIEW SWITCHING ──
+const VIEW_TITLES = { dashboard: 'Vue globale', candidats: 'Gestion des candidats', resultats: 'Résultats complets', config: 'Paramètres de session', ateliers: 'Configuration des ateliers', criteres: 'Éditeur de critères', ressources: 'Ressources stagiaires' };
+function showView(id, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('topbarTitle').textContent = VIEW_TITLES[id] || id;
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'candidats') renderCandTable();
+  if (id === 'resultats') renderResults();
+  if (id === 'config') renderConfig();
+  if (id === 'ateliers') renderAteliersConfig();
+  if (id === 'criteres') renderCritView();
+  if (id === 'ressources') renderRessourcesView();
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  renderKPI();
+  renderCharts();
+  renderDashTable();
+}
+
+function renderKPI() {
+  const admis = data.candidats.filter(c => c.statut === 'admis').length;
+  const refuse = data.candidats.filter(c => c.statut === 'refuse').length;
+  const encours = data.candidats.filter(c => c.statut === 'en-cours').length;
+  const absent = data.candidats.filter(c => c.statut === 'absent').length;
+  const txAdmis = data.candidats.length ? Math.round(admis / data.candidats.length * 100) : 0;
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi-card total"><div class="kpi-label">Total candidats</div><div class="kpi-num">${data.candidats.length}</div><div class="kpi-sub">session ${data.promo || '—'}</div></div>
+    <div class="kpi-card admis"><div class="kpi-label">Admis</div><div class="kpi-num g">${admis}</div><div class="kpi-sub">${txAdmis}% du total</div></div>
+    <div class="kpi-card refuse"><div class="kpi-label">Refusés</div><div class="kpi-num r">${refuse}</div><div class="kpi-sub">${data.candidats.length ? Math.round(refuse/data.candidats.length*100) : 0}% du total</div></div>
+    <div class="kpi-card encours"><div class="kpi-label">En cours</div><div class="kpi-num o">${encours}</div><div class="kpi-sub">évaluation en cours</div></div>
+    <div class="kpi-card absent"><div class="kpi-label">Absents</div><div class="kpi-num g3">${absent}</div><div class="kpi-sub">non évalués</div></div>
+  `;
+}
+
+function renderCharts() {
+  // Bar chart ateliers
+  const barChart = document.getElementById('chartAteliers');
+  barChart.innerHTML = '';
+  data.ateliers.forEach((a, i) => {
+    const vals = data.candidats.map(c => c.scores[a.id]).filter(v => v !== null && v !== undefined);
+    const avg = vals.length ? vals.reduce((s, v) => s + parseFloat(v), 0) / vals.length : null;
+    const pct = avg !== null ? (avg / 20 * 100) : 0;
+    const colorMap = { high: '#1e6b3c', mid: '#b85c14', low: '#b83020' };
+    const cls = avg !== null ? getScoreClass(avg) : 'none';
+    const barColor = cls === 'high' ? '#1e6b3c' : cls === 'mid' ? '#b85c14' : cls === 'low' ? '#b83020' : '#ccc8c0';
+    const div = document.createElement('div');
+    div.className = 'bar-row';
+    div.innerHTML = `
+      <div class="bar-label">${a.nom}</div>
+      <div class="bar-wrap">
+        <div class="bar-fill" id="bf_${a.id}" style="width:0%;background:${barColor}">
+          <span class="bar-val">${avg !== null ? avg.toFixed(1) : '—'}</span>
+        </div>
+      </div>
+    `;
+    barChart.appendChild(div);
+    setTimeout(() => { document.getElementById('bf_' + a.id).style.width = pct + '%'; }, 100 + i * 60);
+  });
+
+  // Donut statuts
+  const admis = data.candidats.filter(c => c.statut === 'admis').length;
+  const refuse = data.candidats.filter(c => c.statut === 'refuse').length;
+  const encours = data.candidats.filter(c => c.statut === 'en-cours').length;
+  const absent = data.candidats.filter(c => c.statut === 'absent').length;
+  const total = data.candidats.length || 1;
+  const donutData = [
+    { label: 'Admis', val: admis, color: '#1e6b3c' },
+    { label: 'Refusés', val: refuse, color: '#b83020' },
+    { label: 'En cours', val: encours, color: '#1a3d6b' },
+    { label: 'Absents', val: absent, color: '#9a9690' },
+  ];
+  let cumulPct = 0;
+  const segments = donutData.map(d => {
+    const pct = d.val / total;
+    const seg = { ...d, start: cumulPct, pct };
+    cumulPct += pct;
+    return seg;
+  });
+
+  const r = 60, cx = 80, cy = 80, sw = 22;
+  const circ = 2 * Math.PI * r;
+  let svgPaths = segments.filter(s => s.val > 0).map(s => {
+    const offset = circ * (1 - s.pct);
+    const rotate = s.start * 360 - 90;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${sw}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" transform="rotate(${rotate} ${cx} ${cy})" stroke-linecap="butt"/>`;
+  }).join('');
+
+  const legendHTML = donutData.map(d => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${d.color}"></div>
+      <span><strong>${d.val}</strong> ${d.label}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('chartStatuts').innerHTML = `
+    <div class="donut-row" style="flex-direction:column;gap:16px">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--surface2)" stroke-width="${sw}"/>
+        ${svgPaths}
+        <text x="${cx}" y="${cy+5}" text-anchor="middle" font-family="Syne,sans-serif" font-size="18" font-weight="800" fill="var(--ink)">${total}</text>
+        <text x="${cx}" y="${cy+20}" text-anchor="middle" font-family="Instrument Sans,sans-serif" font-size="9" fill="var(--ink3)" text-transform="uppercase">candidats</text>
+      </svg>
+      <div style="display:flex;flex-wrap:wrap;gap:10px 20px;justify-content:center">${legendHTML}</div>
+    </div>
+  `;
+}
+
+function renderDashTable() {
+  const q = document.getElementById('searchDash') ? document.getElementById('searchDash').value.toLowerCase() : '';
+  let list = [...data.candidats].filter(c => q ? (c.prenom + ' ' + c.nom + ' ' + c.id).toLowerCase().includes(q) : true);
+  list.sort((a, b) => (getMoyenne(b) || 0) - (getMoyenne(a) || 0));
+  const body = document.getElementById('dashTableBody');
+  if (!body) return;
+  body.innerHTML = list.map((c, i) => {
+    const moy = getMoyenne(c);
+    const ci = i % COLORS.length;
+    const filled = data.ateliers.filter(a => c.scores[a.id] !== null && c.scores[a.id] !== undefined).length;
+    return `
+      <tr>
+        <td><div class="td-candidate">
+          <div class="td-avatar" style="background:${AV_COLORS[ci]}20;color:${AV_COLORS[ci]}">${c.prenom[0]}${c.nom[0]}</div>
+          <div><div class="td-name">${c.prenom} ${c.nom}</div><div class="td-id">${c.id}</div></div>
+        </div></td>
+        <td><span class="score-pill ${getScoreClass(moy)}">${moy !== null ? moy.toFixed(1) + '/20' : '—'}</span></td>
+        <td><span class="badge ${c.statut}">${c.statut === 'en-cours' ? 'En cours' : c.statut === 'admis' ? 'Admis' : c.statut === 'refuse' ? 'Refusé' : 'Absent'}</span></td>
+        <td style="font-size:0.78rem;color:var(--ink3)">${filled}/${data.ateliers.length} atelier${filled > 1 ? 's' : ''}</td>
+        <td style="font-size:0.78rem;color:var(--ink2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.commentaire || '<span style="color:var(--ink3)">—</span>'}</td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink3)">Aucun candidat</td></tr>';
+}
+
+// ── CANDIDATS TABLE ──
+function renderCandTable() {
+  const q = document.getElementById('searchCand') ? document.getElementById('searchCand').value.toLowerCase() : '';
+  let list = [...data.candidats].filter(c => q ? (c.prenom + ' ' + c.nom + ' ' + c.id).toLowerCase().includes(q) : true);
+  const body = document.getElementById('candTableBody');
+  if (!body) return;
+  body.innerHTML = list.map((c, i) => {
+    const moy = getMoyenne(c);
+    const ci = i % COLORS.length;
+    return `<tr>
+      <td><div class="td-candidate">
+        <div class="td-avatar" style="background:${AV_COLORS[ci%AV_COLORS.length]}20;color:${AV_COLORS[ci%AV_COLORS.length]}">${c.prenom[0]}${c.nom[0]}</div>
+        <div><div class="td-name">${c.prenom} ${c.nom}</div><div class="td-id">${c.id}</div></div>
+      </div></td>
+      <td><span class="score-pill ${getScoreClass(moy)}">${moy !== null ? moy.toFixed(1) + '/20' : '—'}</span></td>
+      <td>
+        <select style="border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:0.75rem;background:var(--bg);color:var(--ink);outline:none;cursor:pointer" onchange="updateStatut('${c.id}',this.value)">
+          <option value="en-cours" ${c.statut==='en-cours'?'selected':''}>En cours</option>
+          <option value="admis" ${c.statut==='admis'?'selected':''}>Admis</option>
+          <option value="refuse" ${c.statut==='refuse'?'selected':''}>Refusé</option>
+          <option value="absent" ${c.statut==='absent'?'selected':''}>Absent</option>
+        </select>
+      </td>
+      <td>
+        <input type="text" value="${c.commentaire}" placeholder="—" style="border:none;border-bottom:1px dashed var(--border);background:transparent;font-family:Instrument Sans,sans-serif;font-size:0.8rem;color:var(--ink2);outline:none;width:100%;padding:3px 0" onchange="updateComment('${c.id}',this.value)">
+      </td>
+      <td>
+        <input type="text" value="${c.password||''}" placeholder="${c.prenom.toLowerCase()} (défaut)"
+          style="border:none;border-bottom:1px dashed var(--border);background:transparent;font-family:Syne Mono,monospace;font-size:0.75rem;color:var(--ink2);outline:none;width:120px;padding:2px 0"
+          title="Mot de passe espace stagiaire"
+          onchange="updatePassword('${c.id}',this.value)">
+      </td>
+      <td><div class="td-actions">
+        <button class="icon-btn" onclick="deleteCandidat('${c.id}')" title="Supprimer">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        </button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RESULTS TABLE ──
+function renderResults() {
+  const thead = document.getElementById('resultsThead');
+  const body = document.getElementById('resultsBody');
+  const foot = document.getElementById('resultsFoot');
+  if (!thead) return;
+
+  thead.innerHTML = `<tr><th>Candidat</th>${data.ateliers.map(a => `<th>${a.nom} <span style="opacity:0.5;font-weight:400">×${a.coeff}</span></th>`).join('')}<th>Moyenne</th><th>Statut</th></tr>`;
+
+  const sorted = [...data.candidats].sort((a, b) => (getMoyenne(b) || 0) - (getMoyenne(a) || 0));
+  body.innerHTML = sorted.map((c, i) => {
+    const moy = getMoyenne(c);
+    const ci = i % AV_COLORS.length;
+    const scores = data.ateliers.map(a => {
+      const v = c.scores[a.id];
+      return `<td><span class="score-pill ${getScoreClass(v)}" style="font-size:0.72rem">${v !== null && v !== undefined ? v : '—'}</span></td>`;
+    }).join('');
+    return `<tr>
+      <td><div class="td-candidate">
+        <div class="td-avatar" style="background:${AV_COLORS[ci]}20;color:${AV_COLORS[ci]}">${c.prenom[0]}${c.nom[0]}</div>
+        <div><div class="td-name">${c.prenom} ${c.nom}</div><div class="td-id">${c.id}</div></div>
+      </div></td>
+      ${scores}
+      <td><strong class="score-pill ${getScoreClass(moy)}">${moy !== null ? moy.toFixed(1) : '—'}</strong></td>
+      <td><span class="badge ${c.statut}">${c.statut==='en-cours'?'En cours':c.statut==='admis'?'Admis':c.statut==='refuse'?'Refusé':'Absent'}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Foot avg
+  const avgs = data.ateliers.map(a => {
+    const vals = data.candidats.map(c => c.scores[a.id]).filter(v => v !== null && v !== undefined);
+    return vals.length ? (vals.reduce((s, v) => s + parseFloat(v), 0) / vals.length) : null;
+  });
+  const globalMoys = data.candidats.map(c => getMoyenne(c)).filter(v => v !== null);
+  const globalAvg = globalMoys.length ? globalMoys.reduce((s, v) => s + v, 0) / globalMoys.length : null;
+  foot.innerHTML = `<tr style="background:var(--surface2)"><td style="font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink2)">MOYENNES</td>${avgs.map(v => `<td><span class="score-pill ${getScoreClass(v)}" style="font-size:0.72rem">${v !== null ? v.toFixed(1) : '—'}</span></td>`).join('')}<td><strong style="font-family:Syne Mono,monospace;color:var(--accent-warm)">${globalAvg !== null ? globalAvg.toFixed(1) : '—'}</strong></td><td></td></tr>`;
+}
+
+// ── CONFIG ──
+function renderConfig() {
+  document.getElementById('cfgDate').value = data.date || '';
+  document.getElementById('cfgFormateur').value = data.formateur || '';
+  document.getElementById('cfgPromo').value = data.promo || '';
+  document.getElementById('cfgLieu').value = data.lieu || '';
+  document.getElementById('cfgMinAdmis').value = data.minAdmis || 12;
+  document.getElementById('cfgMinOrange').value = data.minOrange || 8;
+}
+function saveCfg() {
+  data.date = document.getElementById('cfgDate').value;
+  data.formateur = document.getElementById('cfgFormateur').value;
+  data.promo = document.getElementById('cfgPromo').value;
+  data.lieu = document.getElementById('cfgLieu').value;
+  data.minAdmis = parseFloat(document.getElementById('cfgMinAdmis').value) || 12;
+  data.minOrange = parseFloat(document.getElementById('cfgMinOrange').value) || 8;
+  saveData();
+  updateMeta();
+}
+
+// ── ATELIERS OFFICIELS (source de vérité) ──
+const OFFICIAL_ATELIERS = [
+  { id:'a1', nom:'Démonstration du PCU — matériel et techniques',        icon:'🩺', coeff:2 },
+  { id:'a2', nom:'Démonstration du garrot tourniquet de fortune',         icon:'🩹', coeff:2 },
+  { id:'a3', nom:'Mise en situation — personne inconsciente qui respire', icon:'😮‍💨', coeff:2 },
+  { id:'a4', nom:'Mise en situation — arrêt cardiaque',                   icon:'❤️', coeff:3 },
+  { id:'a5', nom:'Mise en situation — hémorragie avec garrot',            icon:'🔴', coeff:2 },
+  { id:'a6', nom:'Mise en situation — étouffement nourrisson',            icon:'👶', coeff:2 },
+  { id:'a7', nom:'QCM théorique',                                         icon:'📝', coeff:1 },
+];
+
+// ── ATELIERS CONFIG ──
+function renderAteliersConfig() {
+  data = getData(); // recharger depuis localStorage
+
+  // Si aucun atelier n’est trouvé, injecter les ateliers officiels automatiquement
+  if (!data.ateliers || data.ateliers.length === 0) {
+    data.ateliers = OFFICIAL_ATELIERS;
+    data.candidats.forEach(c => {
+      if (!c.scores) c.scores = {};
+      OFFICIAL_ATELIERS.forEach(a => { if (!(a.id in c.scores)) c.scores[a.id] = null; });
+    });
+    localStorage.setItem('formapp_data', JSON.stringify(data));
+  }
+
+  const list = document.getElementById('ateliersList');
+  if (!list) return;
+  list.innerHTML = '';
+  data.ateliers.forEach((a, i) => {
+    const div = document.createElement('div');
+    div.className = 'atelier-row';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="atelier-dot" style="background:${AV_COLORS[i%AV_COLORS.length]}"></div>
+        <input type="text" value="${a.nom}" style="border:none;border-bottom:1px solid var(--border);background:transparent;font-family:Instrument Sans,sans-serif;font-size:0.85rem;color:var(--ink);outline:none;flex:1;padding:2px 0" onchange="renameAtelier('${a.id}',this.value)">
+      </div>
+      <span style="font-size:0.68rem;color:var(--ink3);text-transform:uppercase;letter-spacing:0.1em">Coeff</span>
+      <input type="number" class="coeff-input" value="${a.coeff}" min="1" max="5" onchange="setCoeff('${a.id}',this.value)">
+      <button class="icon-btn" onclick="removeAtelier('${a.id}')">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    `;
+    list.appendChild(div);
+  });
+
+  const totalCoeff = data.ateliers.reduce((s, a) => s + a.coeff, 0);
+  const preview = document.getElementById('coeffPreview');
+  preview.innerHTML = data.ateliers.map((a, i) => {
+    const pct = Math.round(a.coeff / totalCoeff * 100);
+    return `
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:0.78rem;font-weight:500;color:var(--ink2)">${a.nom}</span>
+          <span style="font-family:Syne Mono,monospace;font-size:0.72rem;color:var(--ink3)">${pct}%</span>
+        </div>
+        <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${AV_COLORS[i%AV_COLORS.length]};border-radius:4px;transition:width 0.5s"></div>
+        </div>
+      </div>`;
+  }).join('') + `<div style="padding-top:12px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--ink3)">Total coefficients : <strong style="color:var(--ink)">${totalCoeff}</strong></div>`;
+}
+
+// ════════════════════════════════════════════════
+// ── CRITÈRES EDITOR ──
+// ════════════════════════════════════════════════
+const CRIT_KEY = 'formapp_criteres';
+const NIVEAUX_ADMIN = [
+  { id:1, label:'Insuffisant',    color:'#b83020', soft:'#fcecea' },
+  { id:2, label:'Fragile',        color:'#c46010', soft:'#fef0e3' },
+  { id:3, label:'Satisfaisant',   color:'#1a7040', soft:'#e6f4ec' },
+  { id:4, label:'Bonne maîtrise', color:'#1a3d8a', soft:'#e6edf8' },
+];
+const AT_ICON_COLORS = [
+  {bg:'#e8edf8',fg:'#1a3d6b'},{bg:'#fcecea',fg:'#9a2218'},
+  {bg:'#e8f3ec',fg:'#155c34'},{bg:'#fef0e3',fg:'#a35010'},
+  {bg:'#fcecea',fg:'#6b1a10'},{bg:'#fef5e6',fg:'#7a4800'},
+  {bg:'#f3f0fa',fg:'#3a1a6b'},
+];
+
+let critData = null;
+let activeCritAtelId = null;
+
+function loadCritData() {
+  const raw = localStorage.getItem(CRIT_KEY);
+  if (raw) { critData = JSON.parse(raw); }
+  else { critData = { ateliers: [], evaluations: {} }; }
+  // Si pas d’ateliers dans critData, on crée une structure vide basée sur data.ateliers
+  if (!critData.ateliers || critData.ateliers.length === 0) {
+    critData.ateliers = data.ateliers.map(a => ({
+      id: a.id, nom: a.nom, icon: '📋', coeff: a.coeff,
+      sousSections: [{ id: 'ss_'+a.id, titre: 'Critères', criteres: [] }]
+    }));
+  }
+}
+
+function saveCritData() {
+  localStorage.setItem(CRIT_KEY, JSON.stringify(critData));
+}
+
+function renderCritView() {
+  loadCritData();
+  renderCritAtelierList();
+  if (activeCritAtelId) renderCritEditorPanel(activeCritAtelId);
+}
+
+function renderCritAtelierList() {
+  const container = document.getElementById('critAtelierList');
+  if (!container) return;
+  container.innerHTML = '';
+  critData.ateliers.forEach((at, i) => {
+    const col = AT_ICON_COLORS[i % AT_ICON_COLORS.length];
+    const totalCrit = at.sousSections.flatMap(ss => ss.criteres).length;
+    const div = document.createElement('div');
+    div.className = 'crit-at-item' + (at.id === activeCritAtelId ? ' active' : '');
+    div.innerHTML = `
+      <div class="crit-at-icon" style="background:${col.bg};color:${col.fg}">${at.icon || '📋'}</div>
+      <div class="crit-at-name">${at.nom}</div>
+      <div class="crit-at-count">${totalCrit}</div>`;
+    div.onclick = () => { activeCritAtelId = at.id; renderCritAtelierList(); renderCritEditorPanel(at.id); };
+    container.appendChild(div);
+  });
+}
+
+function renderCritEditorPanel(atelId) {
+  const at = critData.ateliers.find(a => a.id === atelId);
+  const panel = document.getElementById('critEditorPanel');
+  if (!at || !panel) return;
+
+  const aidx = critData.ateliers.indexOf(at);
+  const col = AT_ICON_COLORS[aidx % AT_ICON_COLORS.length];
+  const totalCrit = at.sousSections.flatMap(ss => ss.criteres).length;
+
+  let html = `
+    <div class="crit-panel-header">
+      <div class="crit-panel-icon" style="background:${col.bg};color:${col.fg}">${at.icon || '📋'}</div>
+      <div>
+        <div class="crit-panel-title">${at.nom}</div>
+        <div class="crit-panel-meta">${at.sousSections.length} sous-section(s) · ${totalCrit} critère(s) · Coefficient ×${at.coeff}</div>
+      </div>
+    </div>`;
+
+  at.sousSections.forEach((ss, ssi) => {
+    html += `
+      <div class="ss-block" id="ss_${ss.id}">
+        <div class="ss-header">
+          <div style="width:18px;height:18px;border-radius:4px;background:var(--accent-warm);opacity:0.15;flex-shrink:0"></div>
+          <input class="ss-title-input" type="text" value="${escHtml(ss.titre)}"
+            onchange="renameSS('${atelId}','${ss.id}',this.value)"
+            placeholder="Nom de la sous-section…">
+          <div class="ss-header-actions">
+            <button class="ss-btn add" onclick="addCritere('${atelId}','${ss.id}')">+ Critère</button>
+            <button class="ss-btn danger" onclick="deleteSS('${atelId}','${ss.id}')">Supprimer</button>
+          </div>
+        </div>`;
+
+    ss.criteres.forEach((cr, cri) => {
+      const globalNum = at.sousSections.slice(0, ssi).flatMap(s => s.criteres).length + cri + 1;
+      html += `
+        <div class="crit-row" id="cr_${cr.id}">
+          <div class="crit-row-top">
+            <div class="crit-row-num">${String(globalNum).padStart(2,'0')}</div>
+            <input class="crit-label-input" type="text" value="${escHtml(cr.label)}"
+              placeholder="Intitulé du critère…"
+              onchange="updateCritLabel('${atelId}','${ss.id}','${cr.id}',this.value)">
+            <button class="crit-row-del" onclick="deleteCritere('${atelId}','${ss.id}','${cr.id}')" title="Supprimer ce critère">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="desc-grid">`;
+
+      NIVEAUX_ADMIN.forEach((niv, ni) => {
+        const desc = (cr.descriptions && cr.descriptions[ni]) ? cr.descriptions[ni] : '';
+        html += `
+            <div class="desc-cell">
+              <div class="desc-cell-label" style="background:${niv.soft};color:${niv.color}">${niv.label}</div>
+              <textarea placeholder="Description pour ce niveau…"
+                onchange="updateCritDesc('${atelId}','${ss.id}','${cr.id}',${ni},this.value)">${escHtml(desc)}</textarea>
+            </div>`;
+      });
+
+      html += `</div></div>`;
+    });
+
+    html += `
+        <button class="add-crit-btn" onclick="addCritere('${atelId}','${ss.id}')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un critère
+        </button>
+      </div>`;
+  });
+
+  html += `
+    <button class="add-ss-btn" onclick="addSS('${atelId}')">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter une sous-section
+    </button>`;
+
+  panel.innerHTML = html;
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Mutations critères ──
+function renameSS(atelId, ssId, titre) {
+  const at = critData.ateliers.find(a => a.id===atelId);
+  const ss = at?.sousSections.find(s => s.id===ssId);
+  if (ss) { ss.titre = titre; saveCritData(); renderCritAtelierList(); }
+}
+
+function deleteSS(atelId, ssId) {
+  const at = critData.ateliers.find(a => a.id===atelId);
+  if (!at) return;
+  if (at.sousSections.length <= 1) { showToast('Au moins une sous-section requise'); return; }
+  if (!confirm('Supprimer cette sous-section et tous ses critères ?')) return;
+  at.sousSections = at.sousSections.filter(s => s.id !== ssId);
+  saveCritData();
+  renderCritAtelierList();
+  renderCritEditorPanel(atelId);
+  showToast('Sous-section supprimée');
+}
+
+function addSS(atelId) {
+  const at = critData.ateliers.find(a => a.id===atelId);
+  if (!at) return;
+  const newId = 'ss_' + Date.now();
+  at.sousSections.push({ id: newId, titre: 'Nouvelle sous-section', criteres: [] });
+  saveCritData();
+  renderCritAtelierList();
+  renderCritEditorPanel(atelId);
+  showToast('Sous-section ajoutée');
+  // Scroll en bas
+  setTimeout(() => {
+    const panel = document.getElementById('critEditorPanel');
+    if (panel) panel.scrollTop = panel.scrollHeight;
+  }, 100);
+}
+
+function addCritere(atelId, ssId) {
+  const at = critData.ateliers.find(a => a.id===atelId);
+  const ss = at?.sousSections.find(s => s.id===ssId);
+  if (!ss) return;
+  const newId = 'cr_' + Date.now();
+  ss.criteres.push({ id: newId, label: '', descriptions: ['','','',''] });
+  saveCritData();
+  renderCritAtelierList();
+  renderCritEditorPanel(atelId);
+  showToast('Critère ajouté');
+  // Focus sur le nouvel input
+  setTimeout(() => {
+    const el = document.getElementById(`cr_${newId}`);
+    if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); el.querySelector('.crit-label-input')?.focus(); }
+  }, 120);
+}
+
+function deleteCritere(atelId, ssId, critId) {
+  const at = critData.ateliers.find(a => a.id===atelId);
+  const ss = at?.sousSections.find(s => s.id===ssId);
+  if (!ss) return;
+  if (!confirm('Supprimer ce critère et toutes ses évaluations ?')) return;
+  ss.criteres = ss.criteres.filter(c => c.id !== critId);
+  // Nettoyer les évaluations
+  Object.keys(critData.evaluations).forEach(cid => {
+    delete critData.evaluations[cid][critId];
+    delete critData.evaluations[cid]['obs_'+critId];
+  });
+  saveCritData();
+  renderCritAtelierList();
+  renderCritEditorPanel(atelId);
+  showToast('Critère supprimé');
+}
+
+function updateCritLabel(atelId, ssId, critId, val) {
+  const at = critData.ateliers.find(a => a.id===atelId);
+  const ss = at?.sousSections.find(s => s.id===ssId);
+  const cr = ss?.criteres.find(c => c.id===critId);
+  if (cr) { cr.label = val; saveCritData(); renderCritAtelierList(); }
+}
+
+function updateCritDesc(atelId, ssId, critId, nivIdx, val) {
+  const at = critData.ateliers.find(a => a.id===atelId);
+  const ss = at?.sousSections.find(s => s.id===ssId);
+  const cr = ss?.criteres.find(c => c.id===critId);
+  if (cr) {
+    if (!cr.descriptions) cr.descriptions = ['','','',''];
+    cr.descriptions[nivIdx] = val;
+    saveCritData();
+  }
+}
+
+function saveAllCriteres() {
+  saveCritData();
+  showToast('Critères enregistrés ✓');
+}
+
+function renameAtelier(id, nom) {
+  data = getData();
+  const a = data.ateliers.find(x => x.id === id);
+  if (a) { a.nom = nom; saveData(); renderAteliersConfig(); }
+}
+function setCoeff(id, val) {
+  data = getData();
+  const a = data.ateliers.find(x => x.id === id);
+  if (a) { a.coeff = parseInt(val) || 1; saveData(); renderAteliersConfig(); }
+}
+function removeAtelier(id) {
+  data = getData();
+  if (data.ateliers.length <= 1) { showToast('Au moins un atelier requis'); return; }
+  if (!confirm('Supprimer cet atelier ? Les notes associées seront perdues.')) return;
+  data.ateliers = data.ateliers.filter(a => a.id !== id);
+  data.candidats.forEach(c => { if (c.scores) delete c.scores[id]; });
+  saveData(); renderAteliersConfig();
+  showToast('Atelier supprimé');
+}
+function addAtelier() {
+  data = getData();
+  const newId = 'a' + Date.now();
+  data.ateliers.push({ id: newId, nom: 'Nouvel atelier', coeff: 1 });
+  data.candidats.forEach(c => { if (!c.scores) c.scores = {}; c.scores[newId] = null; });
+  saveData();
+  renderAteliersConfig();
+  showToast('Atelier ajouté — cliquez sur le nom pour le renommer');
+  setTimeout(() => {
+    const list = document.getElementById('ateliersList');
+    if (list) {
+      list.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      const inputs = list.querySelectorAll('input[type="text"]');
+      const last = inputs[inputs.length - 1];
+      if (last) { last.focus(); last.select(); }
+    }
+  }, 80);
+}
+
+// ── MUTATIONS ──
+function updateStatut(id, statut) {
+  const c = data.candidats.find(x => x.id === id);
+  if (c) { c.statut = statut; saveData(); renderKPI(); }
+}
+function updateComment(id, comment) {
+  const c = data.candidats.find(x => x.id === id);
+  if (c) { c.commentaire = comment; saveData(); }
+}
+function updatePassword(id, pwd) {
+  data = getData();
+  const c = data.candidats.find(x => x.id === id);
+  if (c) { c.password = pwd.trim(); saveData(); }
+}
+function deleteCandidat(id) {
+  if (!confirm('Supprimer ce candidat définitivement ?')) return;
+  data.candidats = data.candidats.filter(c => c.id !== id);
+  saveData(); renderCandTable(); renderKPI();
+}
+
+// ── MODAL ──
+function openAddModal() {
+  document.getElementById('mId').value = 'C-' + String(data.candidats.length + 1).padStart(3, '0');
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('mPrenom').focus();
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+// modalOverlay listener → dans DOMContentLoaded ci-dessous
+
+function addCandidat() {
+  const prenom = document.getElementById('mPrenom').value.trim();
+  const nom = document.getElementById('mNom').value.trim();
+  const id = document.getElementById('mId').value.trim();
+  const statut = document.getElementById('mStatut').value;
+  const commentaire = document.getElementById('mComment').value.trim();
+  const password = document.getElementById('mPassword')?.value.trim() || '';
+  const email    = document.getElementById('mEmail')?.value.trim()    || '';
+  if (!prenom || !nom || !id) { showToast('Champs requis manquants'); return; }
+  if (data.candidats.find(c => c.id === id)) { showToast('ID déjà existant'); return; }
+  const scores = {};
+  data.ateliers.forEach(a => scores[a.id] = null);
+  data.candidats.push({ id, prenom, nom, scores, statut, commentaire, password, email });
+  saveData(); closeModal();
+  ['mPrenom','mNom','mId','mComment','mPassword','mEmail'].forEach(i => {
+    const el = document.getElementById(i); if (el) el.value = '';
+  });
+  renderDashboard();
+  showToast('Candidat ajouté ✓');
+}
+
+// ── EXPORT ──
+function exportCSV() {
+  let csv = 'Candidat,ID,' + data.ateliers.map(a => a.nom).join(',') + ',Moyenne,Statut,Commentaire\n';
+  data.candidats.forEach(c => {
+    const scores = data.ateliers.map(a => c.scores[a.id] !== null ? c.scores[a.id] : '').join(',');
+    const moy = getMoyenne(c);
+    csv += `${c.prenom} ${c.nom},${c.id},${scores},${moy !== null ? moy.toFixed(1) : ''},${c.statut},"${c.commentaire}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `resultats_${data.promo || 'session'}_${data.date || 'export'}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exporté');
+}
+
+// ── META ──
+function updateMeta() {
+  const meta = `${data.promo || '—'} · ${data.date || '—'} · ${data.formateur || '—'}`;
+  document.getElementById('topbarMeta').textContent = meta;
+  document.getElementById('sfPromo').textContent = data.promo || '—';
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── RÉINITIALISATION ──
+function resetToOfficialAteliers() {
+  if (!confirm('Réinitialiser les ateliers avec les 7 ateliers officiels de la journée de test ?\n\nATTENTION : les scores et évaluations existants seront conservés, mais les noms des ateliers seront remis à jour.')) return;
+
+  const officialAteliers = [
+    { id:'a1', nom:'Démonstration du PCU — matériel et techniques',        icon:'🩺', coeff:2 },
+    { id:'a2', nom:'Démonstration du garrot tourniquet de fortune',         icon:'🩹', coeff:2 },
+    { id:'a3', nom:'Mise en situation — personne inconsciente qui respire', icon:'😮‍💨', coeff:2 },
+    { id:'a4', nom:'Mise en situation — arrêt cardiaque',                   icon:'❤️', coeff:3 },
+    { id:'a5', nom:'Mise en situation — hémorragie avec garrot',            icon:'🔴', coeff:2 },
+    { id:'a6', nom:'Mise en situation — étouffement nourrisson',            icon:'👶', coeff:2 },
+    { id:'a7', nom:'QCM théorique',                                         icon:'📝', coeff:1 },
+  ];
+
+  data = getData();
+  data.ateliers = officialAteliers;
+
+  // S’assurer que chaque candidat a les 7 scores
+  data.candidats.forEach(c => {
+    if (!c.scores) c.scores = {};
+    officialAteliers.forEach(a => {
+      if (!(a.id in c.scores)) c.scores[a.id] = null;
+    });
+  });
+
+  // Mettre à jour critData aussi
+  const critRaw = localStorage.getItem('formapp_criteres');
+  if (critRaw) {
+    try {
+      const crit = JSON.parse(critRaw);
+      if (crit.ateliers) {
+        crit.ateliers.forEach(ca => {
+          const official = officialAteliers.find(a => a.id === ca.id);
+          if (official) { ca.nom = official.nom; ca.coeff = official.coeff; ca.icon = official.icon; }
+        });
+        // Ajouter les ateliers manquants
+        officialAteliers.forEach(oa => {
+          if (!crit.ateliers.find(ca => ca.id === oa.id)) {
+            crit.ateliers.push({ id: oa.id, nom: oa.nom, icon: oa.icon, coeff: oa.coeff, sousSections: [{ id:'ss_'+oa.id, titre:'Critères', criteres:[] }] });
+          }
+        });
+        localStorage.setItem('formapp_criteres', JSON.stringify(crit));
+      }
+    } catch(e) {}
+  }
+
+  saveData();
+  renderAteliersConfig();
+  showToast('✓ Ateliers officiels restaurés');
+}
+
+
+
+
+// ════════════════════════════════════════════════════
+// ── OUVERTURE ÉDITEUR RESSOURCES APPRENANT ──
+// ════════════════════════════════════════════════════
+function openApprenantEditor() {
+  // Marquer le mode edition dans sessionStorage
+  sessionStorage.setItem('formapp_edit_mode', '1');
+  // Naviguer vers apprenant dans le portail parent si disponible
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'formapp-goto', target: 'apprenant' }, '*');
+    setTimeout(() => {
+      window.parent.postMessage({ type: 'formapp-enable-edit-apprenant' }, '*');
+    }, 900);
+  } else {
+    window.location.href = 'apprenant.html';
+  }
+  showToast('Navigation vers espace apprenant...');
+}
+
+// ════════════════════════════════════════════════════
+// ── IDENTIFIANTS STAGIAIRES ──
+// ════════════════════════════════════════════════════
+function getSiteUrl() {
+  return window.location.origin + window.location.pathname.replace('admin.html','') + 'apprenant.html';
+}
+
+function buildEmailText(cand) {
+  const pwd = cand.password || cand.prenom.toLowerCase();
+  const url = getSiteUrl();
+  return `Bonjour ${cand.prenom},
+
+Voici vos identifiants pour accéder à votre espace stagiaire FormApp :
+
+  URL     : ${url}
+  Identifiant : ${cand.id}
+  Mot de passe : ${pwd}
+
+Vous trouverez dans cet espace :
+- L’application de révision PSC1
+- Vos fiches techniques et documents
+- L’accès au QCM théorique
+
+Bonne formation !
+L’équipe pédagogique`;
+}
+
+function openCredentialsModal() {
+  data = getData();
+  const list = document.getElementById('credList');
+  const actifs = data.candidats.filter(c => c.statut !== 'absent');
+
+  list.innerHTML = actifs.map((c, i) => {
+    const pwd = c.password || c.prenom.toLowerCase();
+    const col = ['#3b6bdb','#2d9e5a','#e5721a','#c49a0a','#8b2dd4','#1a9e9e'];
+    const cc = col[i % col.length];
+    return `
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all 0.15s"
+      onmouseenter="this.style.borderColor='${cc}'" onmouseleave="this.style.borderColor='var(--border)'"
+      onclick="copyOneCredential('${c.id}')" title="Cliquer pour copier">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="width:32px;height:32px;border-radius:50%;background:${cc}22;color:${cc};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:0.72rem;font-weight:800;flex-shrink:0">${c.prenom[0]}${c.nom[0]}</div>
+        <div>
+          <div style="font-weight:600;font-size:0.88rem">${c.prenom} ${c.nom}</div>
+          <div style="font-family:Syne Mono,monospace;font-size:0.65rem;color:var(--ink3)">${c.id}</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-family:Syne Mono,monospace;font-size:0.72rem;color:var(--ink2)">${pwd}</div>
+          <div id="copy_${c.id}" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${cc}">📋 Copier</div>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border-radius:6px;padding:10px 12px;font-family:Courier New,monospace;font-size:0.7rem;color:var(--ink3);line-height:1.7;white-space:pre-wrap">${buildEmailText(c).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('credModal').classList.add('open');
+}
+
+function closeCredModal() {
+  document.getElementById('credModal').classList.remove('open');
+}
+
+async function copyOneCredential(candId) {
+  const cand = data.candidats.find(c => c.id === candId);
+  if (!cand) return;
+  try {
+    await navigator.clipboard.writeText(buildEmailText(cand));
+    const el = document.getElementById('copy_' + candId);
+    if (el) { el.textContent = '✓ Copié !'; setTimeout(() => { el.textContent = '📋 Copier'; }, 2000); }
+    showToast('E-mail de ' + cand.prenom + ' copié dans le presse-papier');
+  } catch(e) { showToast('Copiez manuellement le texte'); }
+}
+
+async function copyAllCredentials() {
+  const actifs = data.candidats.filter(c => c.statut !== 'absent');
+  const all = actifs.map(c => '─'.repeat(40) + '\n' + buildEmailText(c)).join('\n\n');
+  try {
+    await navigator.clipboard.writeText(all);
+    showToast('Tous les identifiants copiés (' + actifs.length + ' stagiaires)');
+  } catch(e) { showToast('Copiez manuellement le texte'); }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var mo = document.getElementById('modalOverlay');
+  if (mo) mo.addEventListener('click', function(e) { if (e.target === e.currentTarget) closeModal(); });
+  var cm = document.getElementById('credModal');
+  if (cm) cm.addEventListener('click', function(e) { if (e.target === e.currentTarget) closeCredModal(); });
+});
+
+
+// ════════════════════════════════════════════════════
+// ── RESSOURCES STAGIAIRES ──
+// ════════════════════════════════════════════════════
+const RES_KEY = 'formapp_apprenant_resources';
+
+const DEFAULT_RES = {
+  revision: { url:'', title:'Application de révision PSC1', desc:'Révisez les gestes de secourisme à votre rythme.', icon:'🧠' },
+  items: [
+    { id:'r1', type:'pdf',   icon:'📄', title:'Référentiel PSC1 officiel',    desc:'Référentiel national de la formation PSC1',           url:'' },
+    { id:'r2', type:'pdf',   icon:'📋', title:'Fiche RCP adulte',             desc:'Protocole complet — compressions + DAE',              url:'' },
+    { id:'r3', type:'pdf',   icon:'📋', title:'Fiche Garrot & hémorragies',   desc:'CAT, garrot tourniquet, garrot de fortune',            url:'' },
+    { id:'r4', type:'pdf',   icon:'📋', title:'Fiche PLS & inconscient',      desc:'Position Latérale de Sécurité',                       url:'' },
+    { id:'r5', type:'pdf',   icon:'📋', title:'Fiche étouffement nourrisson', desc:'OVACE — claques dos + compressions thoraciques',       url:'' },
+    { id:'r6', type:'video', icon:'🎥', title:'Vidéo — Démonstration RCP',   desc:'Démonstration officielle des gestes',                  url:'' },
+    { id:'r7', type:'video', icon:'🎥', title:'Vidéo — Pose du garrot',      desc:'Démonstration pas à pas',                              url:'' },
+    { id:'r8', type:'link',  icon:'🔗', title:'Numéros d’urgence',           desc:'15 · 18 · 112 — guide officiel',                      url:'https://www.gouvernement.fr/risques/les-numeros-d-urgence' },
+    { id:'r9', type:'link',  icon:'📅', title:'Programme de la journée',      desc:'Déroulé des ateliers et planning',                    url:'' },
+  ]
+};
+
+function getResData() {
+  try { const r=localStorage.getItem(RES_KEY); return r?JSON.parse(r):JSON.parse(JSON.stringify(DEFAULT_RES)); }
+  catch(e){ return JSON.parse(JSON.stringify(DEFAULT_RES)); }
+}
+
+function renderRessourcesView() {
+  const res = getResData();
+  document.getElementById('res_revUrl').value   = res.revision.url   || '';
+  document.getElementById('res_revTitle').value = res.revision.title || '';
+  document.getElementById('res_revDesc').value  = res.revision.desc  || '';
+  renderResItemsList(res.items);
+}
+
+function renderResItemsList(items) {
+  const list = document.getElementById('res_itemsList');
+  if (!list) return;
+  const typeLabel = { pdf:'PDF', video:'Vidéo', link:'Lien', doc:'Document' };
+  const typeColor = { pdf:'#b83020', video:'#a07800', link:'#1a3d6b', doc:'#b85c14' };
+  list.innerHTML = items.map((item, i) => `
+    <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;color:${typeColor[item.type]||'#666'};margin-bottom:2px">${typeLabel[item.type]||item.type} ${item.icon}</div>
+        <input type="text" value="${(item.title||'').replace(/"/g,'&quot;')}" placeholder="Titre"
+          style="width:100%;border:none;border-bottom:1px solid var(--border);background:transparent;font-size:0.82rem;color:var(--ink);outline:none;padding:2px 0"
+          onchange="updateResItem(${i},'title',this.value)">
+      </div>
+      <input type="url" value="${item.url||''}" placeholder="https://..."
+        style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;font-size:0.75rem;color:var(--ink);outline:none"
+        onchange="updateResItem(${i},'url',this.value)">
+      <select style="padding:5px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;font-size:0.75rem;color:var(--ink);outline:none;cursor:pointer"
+        onchange="updateResItem(${i},'type',this.value)">
+        <option value="pdf"   ${item.type==='pdf'  ?'selected':''}>PDF</option>
+        <option value="video" ${item.type==='video'?'selected':''}>Vidéo</option>
+        <option value="link"  ${item.type==='link' ?'selected':''}>Lien</option>
+      </select>
+      <button onclick="removeResItem(${i})" style="width:28px;height:28px;border-radius:5px;border:1px solid rgba(248,113,113,0.3);background:rgba(248,113,113,0.08);color:#f87171;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>`).join('');
+}
+
+function updateResItem(idx, field, value) {
+  const res = getResData();
+  if (res.items[idx]) {
+    res.items[idx][field] = value;
+    if (field==='type') {
+      const icons = {pdf:'📄',video:'🎥',link:'🔗',doc:'📋'};
+      res.items[idx].icon = icons[value]||'📄';
+    }
+    localStorage.setItem(RES_KEY, JSON.stringify(res));
+  }
+}
+
+function removeResItem(idx) {
+  const res = getResData();
+  res.items.splice(idx, 1);
+  localStorage.setItem(RES_KEY, JSON.stringify(res));
+  renderResItemsList(res.items);
+  showToast('Élément supprimé');
+}
+
+function addResourceItem() {
+  const res = getResData();
+  res.items.push({ id:'r'+Date.now(), type:'pdf', icon:'📄', title:'Nouveau document', desc:'', url:'' });
+  localStorage.setItem(RES_KEY, JSON.stringify(res));
+  renderResItemsList(res.items);
+  showToast('Élément ajouté');
+}
+
+function saveResources() {
+  const res = getResData();
+  res.revision.url   = document.getElementById('res_revUrl').value.trim();
+  res.revision.title = document.getElementById('res_revTitle').value.trim() || res.revision.title;
+  res.revision.desc  = document.getElementById('res_revDesc').value.trim()  || res.revision.desc;
+  localStorage.setItem(RES_KEY, JSON.stringify(res));
+  if(typeof saveAndSync==='function') saveAndSync();
+  showToast('Ressources enregistrées ✓');
+}
+
+// ── GESTION MOTS DE PASSE STAGIAIRES ──
+function renderCandTableWithPasswords() {
+  // Affiche dans la table candidats une colonne mot de passe éditable
+  // (extension de renderCandTable existante)
+}
+
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+  data = getData();
+  // Injecter les ateliers officiels si absents
+  if (!data.ateliers || data.ateliers.length === 0) {
+    data.ateliers = defaultAteliers;
+    data.candidats.forEach(c => {
+      if (!c.scores) c.scores = {};
+      defaultAteliers.forEach(a => { if (!(a.id in c.scores)) c.scores[a.id] = null; });
+    });
+    localStorage.setItem(SHARED_KEY, JSON.stringify(data));
+  }
+  updateMeta();
+  renderDashboard();
+});
+</script>
+
+<script>
+// ── FormApp unified nav ──
+(function() {
+  var MAP = {'apprenant.html':'apprenant','encadrant.html':'encadrant','admin.html':'admin','qcm.html':'qcm'};
+  function patchLinks() {
+    document.querySelectorAll('a[href]').forEach(function(a) {
+      var h = a.getAttribute('href');
+      if (MAP[h]) {
+        a.removeAttribute('href');
+        a.style.cursor = 'pointer';
+        a.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (window.parent !== window) window.parent.postMessage({type:'formapp-goto',target:MAP[h]}, '*');
+          else window.location.href = h;
+        });
+      }
+    });
+    // location.href assignments handled by native navigation if not in iframe
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', patchLinks);
+  else patchLinks();
+  // Listen for focus signal from portal
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'formapp-focus') {
+      // optional: refresh dynamic content here
+    }
+  });
+})();
+</script>
+
+<!-- ══ MODAL IDENTIFIANTS STAGIAIRES ══ -->
+<div class="modal-overlay" id="credModal" style="z-index:300">
+  <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h2 style="font-size:1.1rem">📧 Identifiants stagiaires</h2>
+      <button onclick="closeCredModal()" style="background:none;border:none;color:var(--ink3);font-size:1.2rem;cursor:pointer">✕</button>
+    </div>
+    <p style="font-size:0.76rem;color:var(--ink3);line-height:1.6;margin-bottom:18px">
+      Cliquez sur un stagiaire pour copier son e-mail d'accès. Collez-le directement dans votre messagerie.
+    </p>
+    <div id="credList"></div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:space-between;align-items:center">
+      <button class="btn btn-outline" onclick="copyAllCredentials()" style="font-size:0.75rem">📋 Tout copier</button>
+      <button class="btn btn-outline" onclick="closeCredModal()" style="font-size:0.75rem">Fermer</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
