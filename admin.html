@@ -337,12 +337,21 @@ async function pullFromSupabase() {
     if (data.qcm_codes)   localStorage.setItem(CODES_KEY_SB,  data.qcm_codes);
     if (data.fmt_data) {
       localStorage.setItem(FMT_KEY_SB, data.fmt_data);
-      // Notifier le parent (index.html)
       try {
         if (window.parent !== window)
           window.parent.postMessage({ type: 'formapp-formateurs-update', data: data.fmt_data }, '*');
       } catch(e) {}
     }
+    // Charger aussi les formateurs depuis global_formateurs
+    try {
+      const fmtRes = await _sb.from('formapp_sessions')
+        .select('fmt_data').eq('session_key', 'global_formateurs').single();
+      if (!fmtRes.error && fmtRes.data && fmtRes.data.fmt_data !== '[]') {
+        localStorage.setItem(FMT_KEY_SB, fmtRes.data.fmt_data);
+        if (window.parent !== window)
+          window.parent.postMessage({ type: 'formapp-formateurs-update', data: fmtRes.data.fmt_data }, '*');
+      }
+    } catch(e) {}
     return true;
   } catch(e) { console.warn('[Supabase pull]', e.message); return false; }
 }
@@ -2463,16 +2472,22 @@ function getFormateurs() {
 function saveFormateurs(list) {
   const json = JSON.stringify(list);
   localStorage.setItem(FMT_KEY, json);
-  // Push immédiat vers Supabase avec les données fmt_data à jour
+  // Push vers Supabase dans une ligne globale accessible par tous les navigateurs
   if (typeof _sb !== 'undefined' && _sb) {
     _sb.from('formapp_sessions').upsert({
-      session_key: getSessionKey(),
+      session_key: 'global_formateurs',
       fmt_data: json,
       updated_at: new Date().toISOString()
     }, { onConflict: 'session_key' }).then(function(res) {
       if (res.error) console.warn('[Supabase] saveFormateurs:', res.error.message);
-      else console.log('[Supabase] Formateurs synchronisés (' + list.length + ')');
+      else console.log('[Supabase] Formateurs synchronisés globalement (' + list.length + ')');
     });
+    // Aussi dans la session courante pour compatibilité
+    _sb.from('formapp_sessions').upsert({
+      session_key: getSessionKey(),
+      fmt_data: json,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'session_key' });
   }
   // Sync vers le parent (index.html) pour contourner l'isolation localStorage iframe
   try {

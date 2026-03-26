@@ -207,21 +207,28 @@ function getSessionKeyIndex() {
 
 // Charger les formateurs depuis Supabase et les stocker en localStorage
 async function loadFormateursFromSupabase() {
-  if (!_sbIndex) { console.warn('[Index] _sbIndex null'); return; }
+  if (!_sbIndex) { console.warn('[Index] _sbIndex null'); return []; }
   try {
+    // Les formateurs sont dans la ligne 'global_formateurs' — partagée entre tous les navigateurs
     var res = await _sbIndex
       .from('formapp_sessions')
       .select('fmt_data')
-      .eq('session_key', getSessionKeyIndex())
+      .eq('session_key', 'global_formateurs')
       .single();
-    if (res.error) { console.warn('[Index] pull formateurs:', res.error.message); return; }
+    if (res.error) {
+      console.warn('[Index] pull formateurs:', res.error.message);
+      // Fallback : essayer la session courante
+      res = await _sbIndex.from('formapp_sessions').select('fmt_data')
+        .eq('session_key', getSessionKeyIndex()).single();
+      if (res.error || !res.data) return [];
+    }
     if (res.data && res.data.fmt_data && res.data.fmt_data !== '[]') {
       localStorage.setItem('formapp_formateurs', res.data.fmt_data);
       var list = JSON.parse(res.data.fmt_data);
       console.log('[Index] Formateurs chargés depuis Supabase:', list.length, 'compte(s)');
       return list;
     } else {
-      console.warn('[Index] fmt_data vide dans Supabase');
+      console.warn('[Index] fmt_data vide dans Supabase (clé global_formateurs)');
     }
   } catch(e) { console.warn('[Index] loadFormateurs erreur:', e); }
   return [];
