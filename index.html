@@ -192,6 +192,7 @@ iframe.active { display: block; opacity: 1; }
 <!-- ── SUPABASE dans index.html pour charger les formateurs ── -->
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+var _sbIdx = null;
 (function() {
   var _sbIdx = null;
   try {
@@ -217,6 +218,7 @@ iframe.active { display: block; opacity: 1; }
     } catch(e) { console.warn('[Index] loadFormateurs:', e); }
   }
 
+  window.loadFormateursFromSupabase = loadFormateursFromSupabase;
   document.addEventListener('DOMContentLoaded', loadFormateursFromSupabase);
 })();
 </script>
@@ -410,15 +412,28 @@ function checkAuth() {
   const targetModule = pendingModule;
 
   if (targetModule === 'encadrant' && loginVal) {
-    // Vérification compte formateur individuel
-    // Le localStorage est partagé sur le même domaine : on le lit directement
-    try {
-      const fmtList = JSON.parse(localStorage.getItem('formapp_formateurs') || '[]');
+    // Vérification compte formateur — async pour attendre Supabase si besoin
+    (async function() {
+      // 1. Essayer le localStorage d'abord
+      let fmtList = [];
+      try { fmtList = JSON.parse(localStorage.getItem('formapp_formateurs') || '[]'); } catch(e) {}
+
+      // 2. Si vide, charger depuis Supabase
+      if (fmtList.length === 0 && typeof loadFormateursFromSupabase === 'function') {
+        document.getElementById('authError').textContent = 'Vérification en cours...';
+        await loadFormateursFromSupabase();
+        try { fmtList = JSON.parse(localStorage.getItem('formapp_formateurs') || '[]'); } catch(e) {}
+        document.getElementById('authError').textContent = '';
+      }
+
+      console.log('[Auth] Formateurs disponibles:', fmtList.length, '| Login cherché:', loginVal.toLowerCase().trim());
+
       const f = fmtList.find(function(x) {
         return x.login === loginVal.toLowerCase().trim()
             && x.password === input
             && x.actif !== false;
       });
+
       if (f) {
         f.lastAccess = new Date().toISOString();
         localStorage.setItem('formapp_formateurs', JSON.stringify(fmtList));
@@ -426,16 +441,16 @@ function checkAuth() {
         setAuth(targetModule);
         closeAuth();
         openModule(targetModule);
-        return;
+      } else {
+        console.warn('[Auth] Formateur non trouvé. Liste:', fmtList.map(function(x){return x.login;}));
+        const inp = document.getElementById('authInput');
+        inp.classList.add('error');
+        document.getElementById('authError').textContent = 'Identifiant ou mot de passe incorrect.';
+        inp.value = '';
+        setTimeout(function() { inp.classList.remove('error'); }, 600);
+        setTimeout(function() { inp.focus(); }, 100);
       }
-    } catch(e) { console.warn('Erreur lecture formateurs:', e); }
-    // Identifiant saisi mais non trouvé
-    const inp = document.getElementById('authInput');
-    inp.classList.add('error');
-    document.getElementById('authError').textContent = 'Identifiant ou mot de passe incorrect.';
-    inp.value = '';
-    setTimeout(function() { inp.classList.remove('error'); }, 600);
-    setTimeout(function() { inp.focus(); }, 100);
+    })();
     return;
   }
 
