@@ -387,6 +387,16 @@ function saveAndSync() {
 
 // ── Auto-pull au chargement de la page ──
 (async function initSupabase() {
+  // Ne pas lancer si Supabase non configuré
+  if (SUPABASE_URL.includes('VOTRE_URL')) {
+    console.info('[FormApp] Mode localStorage uniquement — Supabase non configuré');
+    return;
+  }
+  // Attendre que le body soit disponible
+  if (!document.body) {
+    document.addEventListener('DOMContentLoaded', function() { initSupabase(); });
+    return;
+  }
   const indicator = document.createElement('div');
   indicator.id = 'sb-indicator';
   indicator.style.cssText = 'position:fixed;bottom:60px;right:20px;z-index:9999;' +
@@ -400,12 +410,6 @@ function saveAndSync() {
     indicator.textContent = msg;
     indicator.style.display = 'block';
     setTimeout(() => { indicator.style.display = 'none'; }, 2500);
-  }
-
-  // Vérifier si Supabase est configuré
-  if (SUPABASE_URL.includes('VOTRE_URL')) {
-    console.info('[FormApp] Mode local — Supabase non configuré');
-    return; // Fonctionne en mode localStorage uniquement
   }
 
   showIndicator('⟳ Synchronisation...', '#fbbf24');
@@ -2519,6 +2523,12 @@ function getFormateurs() {
 function saveFormateurs(list) {
   localStorage.setItem(FMT_KEY, JSON.stringify(list));
   if (typeof saveAndSync === 'function') saveAndSync();
+  // Sync vers le parent (index.html) pour contourner l'isolation localStorage iframe
+  try {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'formapp-formateurs-update', data: JSON.stringify(list) }, '*');
+    }
+  } catch(e) {}
 }
 
 function renderFormateursView() {
