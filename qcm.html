@@ -376,7 +376,12 @@ function saveAndSync() {
 }
 
 // ── Auto-pull au chargement de la page ──
-(async function initSupabase() {
+async function initSupabase() {
+  if (SUPABASE_URL.includes('VOTRE_URL')) {
+    console.info('[FormApp] Mode localStorage uniquement — Supabase non configuré');
+    return;
+  }
+  if (!document.body) { return; }
   const indicator = document.createElement('div');
   indicator.id = 'sb-indicator';
   indicator.style.cssText = 'position:fixed;bottom:60px;right:20px;z-index:9999;' +
@@ -390,12 +395,6 @@ function saveAndSync() {
     indicator.textContent = msg;
     indicator.style.display = 'block';
     setTimeout(() => { indicator.style.display = 'none'; }, 2500);
-  }
-
-  // Vérifier si Supabase est configuré
-  if (SUPABASE_URL.includes('VOTRE_URL')) {
-    console.info('[FormApp] Mode local — Supabase non configuré');
-    return; // Fonctionne en mode localStorage uniquement
   }
 
   showIndicator('⟳ Synchronisation...', '#fbbf24');
@@ -415,7 +414,8 @@ function saveAndSync() {
     if (typeof render === 'function') render();
     if (typeof app_init === 'function') app_init();
   });
-})();
+}
+document.addEventListener("DOMContentLoaded", function() { initSupabase(); });
 </script>
 
 </head>

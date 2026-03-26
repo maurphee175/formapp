@@ -1885,9 +1885,9 @@ function renderCandTableWithPasswords() {
 // ══════════════════════════════════════════════════════
 function admTogglePdfMenu() {
   const m=document.getElementById('admPdfMenu');
-  m.style.display=m.style.display==='none'?'block':'none';
+  if(m) m.style.display=m.style.display==='none'?'block':'none';
 }
-function admClosePdf() { document.getElementById('admPdfMenu').style.display='none'; }
+function admClosePdf() { const m=document.getElementById('admPdfMenu'); if(m) m.style.display='none'; }
 document.addEventListener('click', function(e) {
   if (!e.target.closest('#admPdfMenu') && !e.target.closest('#admPdfBtn'))
     admClosePdf();
