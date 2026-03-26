@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QCM · Formation de Formateur</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Syne+Mono&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #13161e;
+  --surface2: #1a1e28;
+  --surface3: #20242e;
+  --border: #252932;
+  --border2: #2e3440;
+  --ink: #eef0f5;
+  --ink2: #8890a4;
+  --ink3: #4d5568;
+  --ink4: #333a4a;
+  --accent: #6c8fff;
+  --accent-glow: rgba(108,143,255,0.10);
+  --accent-border: rgba(108,143,255,0.25);
+  --green: #4ade80;
+  --green-soft: rgba(74,222,128,0.09);
+  --green-border: rgba(74,222,128,0.22);
+  --orange: #fb923c;
+  --red: #f87171;
+  --red-soft: rgba(248,113,113,0.09);
+  --gold: #fbbf24;
+  --gold-soft: rgba(251,191,36,0.09);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+/* ── NAV ── */
+nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; align-items: center; height: 52px; }
+.nav-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.84rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-right: 28px; }
+.nav-links { display: flex; }
+.nav-link { padding: 0 16px; height: 52px; display: flex; align-items: center; font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink3); text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.15s; cursor: pointer; }
+.nav-link:hover { color: var(--ink2); }
+.nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-right { margin-left: auto; }
+
+/* ── SCREENS ── */
+.screen { display: none; animation: fadeIn 0.25s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+/* ════════════════════════════════════════════
+   ÉCRAN 0 — SAISIE DU CODE D'ACCÈS
+════════════════════════════════════════════ */
+.login-wrap { min-height: calc(100vh - 52px); display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+.login-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 44px 48px;
+  width: 100%; max-width: 420px;
+  text-align: center;
+}
+.login-logo { width: 64px; height: 64px; border-radius: 16px; background: var(--accent-glow); border: 1px solid var(--accent-border); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 22px; }
+.login-title { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
+.login-subtitle { font-size: 0.8rem; color: var(--ink3); line-height: 1.6; margin-bottom: 32px; }
+
+.code-field-wrap { position: relative; margin-bottom: 12px; }
+.code-field {
+  width: 100%; padding: 16px 18px;
+  background: var(--surface2); border: 1.5px solid var(--border2);
+  border-radius: 10px; color: var(--ink);
+  font-family: 'Syne Mono', monospace; font-size: 1.4rem; font-weight: 700;
+  text-align: center; letter-spacing: 0.22em; text-transform: uppercase;
+  outline: none; transition: border-color 0.15s, background 0.15s;
+}
+.code-field:focus { border-color: var(--accent); background: var(--surface3); }
+.code-field.error { border-color: var(--red); background: var(--red-soft); animation: shake 0.35s ease; }
+.code-field.success { border-color: var(--green); background: var(--green-soft); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} }
+
+.code-error-msg { font-size: 0.75rem; color: var(--red); text-align: center; margin-bottom: 14px; min-height: 18px; transition: opacity 0.2s; }
+
+.login-btn {
+  width: 100%; padding: 14px;
+  background: var(--accent); color: white; border: none;
+  border-radius: 10px; font-family: 'Syne', sans-serif;
+  font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  cursor: pointer; transition: all 0.18s; margin-bottom: 20px;
+}
+.login-btn:hover:not(:disabled) { background: #5a78e8; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(108,143,255,0.3); }
+.login-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.login-hint { font-size: 0.73rem; color: var(--ink3); line-height: 1.7; }
+.login-hint a { color: var(--accent); text-decoration: none; cursor: pointer; }
+.login-hint a:hover { text-decoration: underline; }
+
+/* Séparateur admin */
+.login-admin-sep { display: flex; align-items: center; gap: 10px; margin: 20px 0 16px; }
+.login-admin-sep::before, .login-admin-sep::after { content:''; flex:1; height:1px; background:var(--border); }
+.login-admin-sep span { font-size: 0.62rem; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.12em; white-space: nowrap; }
+
+.admin-link-btn {
+  width: 100%; padding: 10px;
+  background: transparent; color: var(--ink3);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: 'Instrument Sans', sans-serif; font-size: 0.78rem;
+  cursor: pointer; transition: all 0.15s;
+}
+.admin-link-btn:hover { border-color: var(--ink2); color: var(--ink2); }
+
+/* ════════════════════════════════════════════
+   ÉCRAN 1 — CONFIRMATION IDENTITÉ
+════════════════════════════════════════════ */
+.confirm-wrap { min-height: calc(100vh - 52px); display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+.confirm-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 40px 44px; width: 100%; max-width: 460px; text-align: center; }
+.confirm-avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin: 0 auto 18px; }
+.confirm-title { font-family: 'Syne', sans-serif; font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
+.confirm-id { font-family: 'Syne Mono', monospace; font-size: 0.75rem; color: var(--ink3); margin-bottom: 24px; }
+.confirm-infos { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; text-align: left; }
+.confirm-info-lbl { font-size: 0.59rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink3); margin-bottom: 3px; }
+.confirm-info-val { font-family: 'Syne Mono', monospace; font-size: 0.8rem; color: var(--ink2); font-weight: 600; }
+.confirm-already { background: var(--gold-soft); border: 1px solid rgba(251,191,36,0.22); border-radius: 8px; padding: 11px 14px; margin-bottom: 18px; font-size: 0.76rem; color: var(--gold); line-height: 1.6; display: none; }
+.confirm-btn { width: 100%; padding: 13px; background: var(--accent); color: white; border: none; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 0.86rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.18s; margin-bottom: 10px; }
+.confirm-btn:hover { background: #5a78e8; transform: translateY(-1px); box-shadow: 0 4px 18px rgba(108,143,255,0.28); }
+.confirm-back { width: 100%; padding: 10px; background: transparent; color: var(--ink3); border: 1px solid var(--border); border-radius: 8px; font-family: 'Instrument Sans', sans-serif; font-size: 0.78rem; cursor: pointer; transition: all 0.15s; }
+.confirm-back:hover { border-color: var(--ink2); color: var(--ink2); }
+
+/* ════════════════════════════════════════════
+   ÉCRAN 2 — QUESTIONS
+════════════════════════════════════════════ */
+.qcm-layout { max-width: 800px; margin: 0 auto; padding: 0 20px 80px; }
+
+.qcm-topbar { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 13px 0 11px; border-bottom: 1px solid var(--border); margin-bottom: 26px; display: flex; align-items: center; gap: 14px; }
+.qcm-topbar-left { flex: 1; min-width: 0; }
+.qcm-topbar-title { font-family: 'Syne', sans-serif; font-size: 0.86rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qcm-topbar-cand { font-size: 0.7rem; color: var(--ink3); margin-top: 2px; }
+.timer { display: flex; align-items: center; gap: 5px; font-family: 'Syne Mono', monospace; font-size: 0.73rem; color: var(--ink3); flex-shrink: 0; }
+.timer.warn { color: var(--orange); }
+.timer.danger { color: var(--red); animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0.4} }
+.prog-wrap { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+.prog-bar { width: 120px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s ease; }
+.prog-txt { font-family: 'Syne Mono', monospace; font-size: 0.68rem; color: var(--ink3); min-width: 34px; text-align: right; }
+
+/* Carte question */
+.q-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 22px 24px; margin-bottom: 12px; transition: border-color 0.2s; animation: cardIn 0.2s ease both; }
+@keyframes cardIn { from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none} }
+.q-card.answered { border-color: var(--border2); }
+.q-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 12px; flex-wrap: wrap; }
+.q-num { font-family: 'Syne', sans-serif; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); background: var(--accent-glow); border: 1px solid var(--accent-border); padding: 2px 8px; border-radius: 4px; }
+.q-theme { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink3); background: var(--surface2); padding: 2px 8px; border-radius: 4px; }
+.q-type { font-size: 0.59rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 4px; margin-left: auto; }
+.q-type.single { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent-border); }
+.q-type.multi { background: var(--gold-soft); color: var(--gold); border: 1px solid rgba(251,191,36,0.22); }
+.q-text { font-size: 0.93rem; font-weight: 600; line-height: 1.55; color: var(--ink); margin-bottom: 14px; }
+.q-opts { display: flex; flex-direction: column; gap: 7px; }
+.q-opt { display: flex; align-items: flex-start; gap: 11px; padding: 11px 14px; border: 1.5px solid var(--border2); border-radius: 8px; background: var(--surface2); cursor: pointer; transition: all 0.13s; user-select: none; }
+.q-opt:hover { border-color: var(--accent); background: var(--accent-glow); }
+.q-opt.sel { border-color: var(--accent); background: var(--accent-glow); }
+.q-ind { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; transition: all 0.13s; }
+.q-ind.radio { border-radius: 50%; }
+.q-ind.check { border-radius: 4px; }
+.q-opt:hover .q-ind { border-color: var(--accent); }
+.q-opt.sel .q-ind { border-color: var(--accent); background: var(--accent); }
+.q-opt.sel .q-ind.radio::after { content:''; display:block; width:6px; height:6px; border-radius:50%; background:white; }
+.q-opt.sel .q-ind.check::after { content:'✓'; font-size:0.62rem; font-weight:900; color:white; line-height:1; }
+.q-letter { font-family: 'Syne Mono', monospace; font-size: 0.67rem; font-weight: 700; color: var(--ink3); flex-shrink: 0; margin-top: 2px; }
+.q-opt-text { font-size: 0.84rem; line-height: 1.45; color: var(--ink); flex: 1; }
+
+.submit-zone { margin-top: 22px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.submit-btn { padding: 13px 30px; background: var(--accent); color: white; border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 0.84rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.15s; }
+.submit-btn:hover:not(:disabled) { background: #5a78e8; transform: translateY(-1px); box-shadow: 0 4px 18px rgba(108,143,255,0.28); }
+.submit-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+.submit-hint { font-size: 0.74rem; color: var(--ink3); transition: color 0.2s; }
+
+/* ════════════════════════════════════════════
+   ÉCRAN 3 — FIN : message épuré uniquement
+════════════════════════════════════════════ */
+.end-wrap { min-height: calc(100vh - 52px); display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
+.end-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 48px 44px; width: 100%; max-width: 480px; text-align: center; }
+.end-check { width: 70px; height: 70px; border-radius: 50%; background: var(--green-soft); border: 2px solid var(--green-border); display: flex; align-items: center; justify-content: center; margin: 0 auto 22px; }
+.end-check svg { color: var(--green); }
+.end-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: 10px; }
+.end-name { font-size: 0.88rem; color: var(--ink3); margin-bottom: 28px; }
+.end-divider { width: 40px; height: 2px; background: var(--border); margin: 0 auto 28px; border-radius: 2px; }
+.end-message { font-size: 0.95rem; color: var(--ink2); line-height: 1.75; margin-bottom: 32px; }
+.end-message strong { color: var(--ink); font-weight: 600; }
+.end-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 0.72rem; color: var(--ink3); margin-bottom: 32px; }
+.end-tag svg { flex-shrink: 0; }
+.end-btn { display: inline-block; padding: 12px 28px; background: var(--surface2); color: var(--ink2); border: 1px solid var(--border); border-radius: 8px; font-family: 'Instrument Sans', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; }
+.end-btn:hover { border-color: var(--ink2); color: var(--ink); }
+
+/* ════════════════════════════════════════════
+   PANNEAU ADMIN — Gestion des codes
+════════════════════════════════════════════ */
+.admin-wrap { min-height: calc(100vh - 52px); padding: 32px 28px 60px; max-width: 900px; margin: 0 auto; }
+.admin-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.admin-header-left h2 { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 800; }
+.admin-header-left p { font-size: 0.76rem; color: var(--ink3); margin-top: 4px; }
+.admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.a-btn { padding: 9px 18px; border-radius: 7px; font-family: 'Instrument Sans', sans-serif; font-size: 0.76rem; font-weight: 600; cursor: pointer; transition: all 0.14s; text-transform: uppercase; letter-spacing: 0.08em; border: none; }
+.a-btn-primary { background: var(--accent); color: white; }
+.a-btn-primary:hover { background: #5a78e8; }
+.a-btn-outline { background: transparent; color: var(--ink2); border: 1px solid var(--border); }
+.a-btn-outline:hover { border-color: var(--ink); color: var(--ink); }
+.a-btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+.a-btn-danger:hover { background: var(--red-soft); }
+
+/* Admin stats */
+.admin-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 22px; }
+.admin-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.admin-stat-num { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: 3px; }
+.admin-stat-lbl { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink3); font-weight: 600; }
+
+/* Table codes */
+.admin-table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.admin-table-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-table-title { font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink3); }
+.admin-search { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; }
+.admin-search input { border: none; background: transparent; font-family: 'Instrument Sans', sans-serif; font-size: 0.8rem; color: var(--ink); outline: none; width: 180px; }
+.admin-search input::placeholder { color: var(--ink3); }
+
+table { width: 100%; border-collapse: collapse; }
+thead th { padding: 10px 14px; text-align: left; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.11em; color: var(--ink3); background: var(--surface2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+td { padding: 11px 14px; font-size: 0.82rem; vertical-align: middle; }
+.td-code { font-family: 'Syne Mono', monospace; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.14em; color: var(--accent); }
+.td-name { font-weight: 500; }
+.td-id { font-family: 'Syne Mono', monospace; font-size: 0.67rem; color: var(--ink3); }
+.status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+.status-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+.status-badge.pending { background: var(--surface2); color: var(--ink3); }
+.status-badge.done { background: var(--green-soft); color: var(--green); border: 1px solid var(--green-border); }
+.td-score { font-family: 'Syne Mono', monospace; font-size: 0.8rem; font-weight: 700; }
+.td-score.high { color: var(--green); }
+.td-score.mid { color: var(--orange); }
+.td-score.low { color: var(--red); }
+.td-date { font-size: 0.72rem; color: var(--ink3); white-space: nowrap; }
+.copy-btn { padding: 4px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; font-size: 0.67rem; font-weight: 600; color: var(--ink2); cursor: pointer; transition: all 0.13s; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+/* Toast */
+.toast { position: fixed; bottom: 22px; right: 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 11px 18px; font-size: 0.79rem; color: var(--ink2); opacity: 0; transform: translateY(8px); transition: all 0.22s; pointer-events: none; z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+.toast.show { opacity: 1; transform: none; }
+
+/* Admin password modal */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-bg.open { opacity: 1; pointer-events: all; }
+.modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 30px; width: 100%; max-width: 380px; text-align: center; transform: translateY(12px); transition: transform 0.2s; box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+.modal-bg.open .modal-box { transform: none; }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+.modal-sub { font-size: 0.76rem; color: var(--ink3); margin-bottom: 20px; line-height: 1.6; }
+.modal-input { width: 100%; padding: 11px 14px; background: var(--surface2); border: 1.5px solid var(--border2); border-radius: 8px; color: var(--ink); font-family: 'Instrument Sans', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.15s; margin-bottom: 14px; text-align: center; }
+.modal-input:focus { border-color: var(--accent); }
+.modal-input.error { border-color: var(--red); }
+.modal-err { font-size: 0.72rem; color: var(--red); margin-bottom: 12px; min-height: 16px; }
+.modal-actions { display: flex; gap: 9px; }
+.modal-btn { flex: 1; padding: 10px; border-radius: 7px; font-family: 'Instrument Sans', sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.14s; }
+.modal-btn-cancel { background: var(--surface2); color: var(--ink2); border: 1px solid var(--border); }
+.modal-btn-cancel:hover { border-color: var(--ink2); }
+.modal-btn-ok { background: var(--accent); color: white; }
+.modal-btn-ok:hover { background: #5a78e8; }
+
+@media (max-width: 600px) {
+  .login-card, .confirm-card, .end-card { padding: 28px 22px; }
+  .admin-stats { grid-template-columns: 1fr 1fr; }
+}
+</style>
+
+<!-- ═══════════════════════════════════════════════════
+     SUPABASE CONFIG — Remplacez les deux valeurs ci-dessous
+     par celles trouvées dans Supabase > Settings > API
+═══════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ┌─────────────────────────────────────────────────────┐
+// │  ÉTAPE 5 — Collez vos valeurs Supabase ici          │
+// └─────────────────────────────────────────────────────┘
+const SUPABASE_URL  = 'https://dxjdirhfcdtvdsayhigm.supabase.co';   // ← remplacez
+const SUPABASE_ANON_KEY = 'sb_publishable_7sHrBN4HyQ5M0MxxQUbE1g_GyP6Qw1T';             // ← remplacez
+
+// ── Initialisation du client Supabase ──
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── Clés de stockage local ──
+const SHARED_KEY_SB = 'formapp_data';
+const CRIT_KEY_SB   = 'formapp_criteres';
+const QCM_KEY_SB    = 'formapp_qcm_results';
+const CODES_KEY_SB  = 'formapp_qcm_codes';
+const SESSION_TABLE = 'formapp_sessions';   // table Supabase unique
+
+// ════════════════════════════════════════════════════════
+// COUCHE DE SYNCHRONISATION
+// Principe : localStorage = cache immédiat
+//            Supabase     = source de vérité partagée
+// ════════════════════════════════════════════════════════
+
+// Identifiant de session unique (clé de partitionnement des données)
+// Utilise la promo+date ou un UUID fixe stocké localement
+function getSessionKey() {
+  let k = localStorage.getItem('formapp_session_key');
+  if (!k) {
+    k = 'session_' + Date.now();
+    localStorage.setItem('formapp_session_key', k);
+  }
+  return k;
+}
+
+// ── PUSH : envoie les données locales vers Supabase ──
+async function pushToSupabase() {
+  try {
+    const sessionKey = getSessionKey();
+    const payload = {
+      session_key: sessionKey,
+      shared_data: localStorage.getItem(SHARED_KEY_SB) || '{}',
+      crit_data:   localStorage.getItem(CRIT_KEY_SB)   || '{}',
+      qcm_results: localStorage.getItem(QCM_KEY_SB)    || '{}',
+      qcm_codes:   localStorage.getItem(CODES_KEY_SB)  || '{}',
+      updated_at:  new Date().toISOString(),
+    };
+    const { error } = await _sb.from(SESSION_TABLE).upsert(payload, { onConflict: 'session_key' });
+    if (error) console.warn('[Supabase push]', error.message);
+  } catch(e) { console.warn('[Supabase push error]', e); }
+}
+
+// ── PULL : charge les données depuis Supabase vers le localStorage ──
+async function pullFromSupabase() {
+  try {
+    const sessionKey = getSessionKey();
+    const { data, error } = await _sb.from(SESSION_TABLE)
+      .select('*')
+      .eq('session_key', sessionKey)
+      .single();
+    if (error) { console.warn('[Supabase pull]', error.message); return false; }
+    if (!data) return false;
+
+    if (data.shared_data && data.shared_data !== '{}')
+      localStorage.setItem(SHARED_KEY_SB, data.shared_data);
+    if (data.crit_data && data.crit_data !== '{}')
+      localStorage.setItem(CRIT_KEY_SB, data.crit_data);
+    if (data.qcm_results && data.qcm_results !== '{}')
+      localStorage.setItem(QCM_KEY_SB, data.qcm_results);
+    if (data.qcm_codes && data.qcm_codes !== '{}')
+      localStorage.setItem(CODES_KEY_SB, data.qcm_codes);
+    return true;
+  } catch(e) { console.warn('[Supabase pull error]', e); return false; }
+}
+
+// ── Abonnement temps réel : actualise si un autre appareil modifie ──
+function subscribeRealtime(onUpdate) {
+  const sessionKey = getSessionKey();
+  _sb.channel('formapp-realtime')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: SESSION_TABLE,
+      filter: `session_key=eq.${sessionKey}`,
+    }, async (payload) => {
+      const d = payload.new;
+      if (d.shared_data) localStorage.setItem(SHARED_KEY_SB, d.shared_data);
+      if (d.crit_data)   localStorage.setItem(CRIT_KEY_SB,   d.crit_data);
+      if (d.qcm_results) localStorage.setItem(QCM_KEY_SB,    d.qcm_results);
+      if (d.qcm_codes)   localStorage.setItem(CODES_KEY_SB,  d.qcm_codes);
+      if (typeof onUpdate === 'function') onUpdate();
+    })
+    .subscribe();
+}
+
+// ── saveAndSync : remplace les saveData() existants ──
+// Appeler après chaque modification locale pour syncer vers Supabase
+let _syncTimer = null;
+function saveAndSync() {
+  // Debounce : attend 800ms d'inactivité avant d'envoyer
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => pushToSupabase(), 800);
+}
+
+// ── Auto-pull au chargement de la page ──
+(async function initSupabase() {
+  const indicator = document.createElement('div');
+  indicator.id = 'sb-indicator';
+  indicator.style.cssText = 'position:fixed;bottom:60px;right:20px;z-index:9999;' +
+    'background:rgba(10,12,16,0.8);color:#4ade80;padding:8px 14px;' +
+    'border-radius:8px;font-family:monospace;font-size:11px;' +
+    'border:1px solid rgba(74,222,128,0.3);display:none;';
+  document.body.appendChild(indicator);
+
+  function showIndicator(msg, color='#4ade80') {
+    indicator.style.color = color;
+    indicator.textContent = msg;
+    indicator.style.display = 'block';
+    setTimeout(() => { indicator.style.display = 'none'; }, 2500);
+  }
+
+  // Vérifier si Supabase est configuré
+  if (SUPABASE_URL.includes('VOTRE_URL')) {
+    console.info('[FormApp] Mode local — Supabase non configuré');
+    return; // Fonctionne en mode localStorage uniquement
+  }
+
+  showIndicator('⟳ Synchronisation...', '#fbbf24');
+  const ok = await pullFromSupabase();
+  if (ok) {
+    showIndicator('✓ Données synchronisées');
+    // Déclencher un refresh si la page a déjà rendu des données
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof render === 'function') render();
+    if (typeof app_init === 'function') app_init();
+  }
+
+  // Écouter les changements en temps réel
+  subscribeRealtime(() => {
+    showIndicator('↻ Mise à jour reçue');
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof render === 'function') render();
+    if (typeof app_init === 'function') app_init();
+  });
+})();
+</script>
+
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">FormApp</div>
+  <div class="nav-links">
+    <a class="nav-link" href="apprenant.html">Mon espace</a>
+    <a class="nav-link active">QCM</a>
+    <a class="nav-link" href="encadrant.html">Encadrant</a>
+    <a class="nav-link" href="admin.html">Admin</a>
+  </div>
+  <div class="nav-right" id="navRight"></div>
+</nav>
+
+<!-- ══ ÉCRAN 0 : SAISIE CODE ══ -->
+<div class="screen active" id="screenLogin">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">🔐</div>
+      <div class="login-title">Code d'accès</div>
+      <div class="login-subtitle">Saisissez le code à 6 caractères qui vous a été communiqué par e-mail pour accéder au QCM.</div>
+
+      <div class="code-field-wrap">
+        <input class="code-field" id="codeInput" type="text" maxlength="6"
+          placeholder="XXXXXX" autocomplete="off" spellcheck="false"
+          oninput="onCodeInput()" onkeydown="onCodeKey(event)">
+      </div>
+      <div class="code-error-msg" id="codeErr"></div>
+
+      <button class="login-btn" id="loginBtn" disabled onclick="validateCode()">Accéder au QCM →</button>
+
+      <div class="login-hint">
+        Code non reçu ? Contactez l'équipe pédagogique.<br>
+      </div>
+
+      <div class="login-admin-sep"><span>Accès formateur</span></div>
+      <button class="admin-link-btn" onclick="openAdminModal()">⚙️ Panneau d'administration des codes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN 1 : CONFIRMATION IDENTITÉ ══ -->
+<div class="screen" id="screenConfirm">
+  <div class="confirm-wrap">
+    <div class="confirm-card">
+      <div class="confirm-avatar" id="confirmAvatar"></div>
+      <div class="confirm-title" id="confirmName">—</div>
+      <div class="confirm-id" id="confirmId">—</div>
+      <div class="confirm-infos">
+        <div><div class="confirm-info-lbl">Questions</div><div class="confirm-info-val" id="confNbQ">—</div></div>
+        <div><div class="confirm-info-lbl">Format</div><div class="confirm-info-val">Unique &amp; multiple</div></div>
+        <div><div class="confirm-info-lbl">Durée estimée</div><div class="confirm-info-val">~15 min</div></div>
+        <div><div class="confirm-info-lbl">Correction</div><div class="confirm-info-val">Différée</div></div>
+      </div>
+      <div class="confirm-already" id="confirmAlready"></div>
+      <button class="confirm-btn" onclick="startQCM()">Commencer →</button>
+      <button class="confirm-back" onclick="goBackToLogin()">← Ce n'est pas moi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN 2 : QUESTIONS ══ -->
+<div class="screen" id="screenQCM">
+  <div class="qcm-layout">
+    <div class="qcm-topbar">
+      <div class="qcm-topbar-left">
+        <div class="qcm-topbar-title">QCM — Formation de Formateur</div>
+        <div class="qcm-topbar-cand" id="qcmCandLbl">—</div>
+      </div>
+      <div class="timer" id="timerEl">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="timerTxt">00:00</span>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+        <div class="prog-txt" id="progTxt">0/0</div>
+      </div>
+    </div>
+    <div id="qContainer"></div>
+    <div class="submit-zone">
+      <button class="submit-btn" id="submitBtn" disabled onclick="submitQCM()">Valider mes réponses</button>
+      <div class="submit-hint" id="submitHint">Répondez à toutes les questions pour valider.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN 3 : FIN ══ -->
+<div class="screen" id="screenEnd">
+  <div class="end-wrap">
+    <div class="end-card">
+      <div class="end-check">
+        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="end-title">QCM terminé</div>
+      <div class="end-name" id="endName">—</div>
+      <div class="end-divider"></div>
+      <div class="end-message">
+        Vos réponses ont été <strong>enregistrées avec succès</strong>.<br><br>
+        La correction détaillée vous sera communiquée par <strong>l'équipe pédagogique</strong>.
+      </div>
+      <div class="end-tag">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Résultat transmis à votre formateur
+      </div>
+      <br>
+      <a class="end-btn" href="apprenant.html">Retour à mon espace →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANNEAU ADMIN ══ -->
+<div class="screen" id="screenAdmin">
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <div class="admin-header-left">
+        <h2>Gestion des codes d'accès QCM</h2>
+        <p>Générez, consultez et copiez les codes à envoyer par e-mail à chaque agent.</p>
+      </div>
+      <div class="admin-actions">
+        <button class="a-btn a-btn-outline" onclick="exportCodesCSV()">↓ Exporter CSV</button>
+        <button class="a-btn a-btn-outline" onclick="regen()" title="Régénérer les codes manquants">⟳ Codes manquants</button>
+        <button class="a-btn a-btn-primary" onclick="regenAll()" title="Régénérer TOUS les codes">Régénérer tous</button>
+        <button class="a-btn a-btn-outline" onclick="goBackToLogin()">← Retour</button>
+      </div>
+    </div>
+
+    <div class="admin-stats" id="adminStats"></div>
+
+    <div class="admin-table-card">
+      <div class="admin-table-header">
+        <div class="admin-table-title">Codes par candidat</div>
+        <div class="admin-search">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Rechercher…" id="adminSearch" oninput="renderAdminTable()">
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Candidat</th>
+            <th>Statut</th>
+            <th>Score</th>
+            <th>Passé le</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="adminTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal mot de passe admin -->
+<div class="modal-bg" id="adminModal">
+  <div class="modal-box">
+    <div class="modal-title">Accès formateur</div>
+    <div class="modal-sub">Entrez le mot de passe pour accéder au panneau de gestion des codes QCM.</div>
+    <input class="modal-input" id="adminPwdInput" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')checkAdminPwd()">
+    <div class="modal-err" id="adminPwdErr"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeAdminModal()">Annuler</button>
+      <button class="modal-btn modal-btn-ok" onclick="checkAdminPwd()">Accéder</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// QUESTIONS
+// ═══════════════════════════════════════════════════════════
+const QUESTIONS = [
+  { id:'q01', theme:'Cadre légal', type:'single',
+    texte:'Quel article du Code pénal oblige tout citoyen à porter secours à une personne en danger ?',
+    options:['Article L.112-5','Article L.223-6','Article L.311-2','Article L.451-1'], correct:1 },
+  { id:'q02', theme:'Cadre légal', type:'multi',
+    texte:'Parmi ces affirmations, lesquelles sont vraies concernant la protection juridique du secouriste de bonne foi ? (plusieurs réponses possibles)',
+    options:["Il est protégé de toute poursuite pénale s'il agit sans rémunération et de bonne foi","Sa responsabilité peut être engagée en cas de faute intentionnelle","Il doit obligatoirement être titulaire du PSC1 pour être protégé","La protection s'applique même si le geste a causé un préjudice accidentel"],
+    correct:[0,1,3] },
+  { id:'q03', theme:'Cadre légal', type:'single',
+    texte:'La formation PSC1 habilite son titulaire à :',
+    options:["Réaliser des actes médicaux en l'absence de médecin","Effectuer des gestes de premiers secours dans l'attente des secours professionnels","Remplacer les équipes SMUR sur intervention","Prescrire des médicaments en situation d'urgence"],
+    correct:1 },
+  { id:'q04', theme:'Chaîne de survie', type:'single',
+    texte:"Dans quelle fenêtre de temps la défibrillation est-elle la plus efficace après un arrêt cardiaque ?",
+    options:["Dans les 2 premières minutes","Dans les 3 à 5 premières minutes","Dans les 10 premières minutes","Dans les 20 premières minutes"], correct:1 },
+  { id:'q05', theme:'Chaîne de survie', type:'single',
+    texte:"Quelle est la bonne séquence de la chaîne de survie ?",
+    options:["RCP → Alerte → DAE → Soins avancés","Alerte → RCP → DAE → Soins avancés","Reconnaissance → Alerte → RCP → DAE → Soins avancés","DAE → Alerte → RCP → Soins avancés"], correct:2 },
+  { id:'q06', theme:'Chaîne de survie', type:'multi',
+    texte:"Pour être de qualité, une RCP doit respecter les critères suivants. Lesquels sont corrects ? (plusieurs réponses possibles)",
+    options:["Fréquence de 100 à 120 compressions par minute","Dépression thoracique de 5 à 6 cm","Rapport compressions/insufflations de 30:2 pour un adulte","Pauses de 10 secondes maximum entre les cycles","Décompression thoracique complète entre chaque compression"],
+    correct:[0,1,2,4] },
+  { id:'q07', theme:"Numéros d'urgence", type:'single',
+    texte:"Quel numéro permet d'obtenir directement le SAMU pour une urgence médicale ?",
+    options:["Le 17","Le 18","Le 15","Le 114"], correct:2 },
+  { id:'q08', theme:"Numéros d'urgence", type:'multi',
+    texte:"Quelles informations sont indispensables lors d'un appel aux secours ? (plusieurs réponses possibles)",
+    options:["La localisation précise (adresse, point de repère)","La nature et la gravité de l'urgence","Le groupe sanguin de la victime","Le nombre de victimes","Les gestes de secours déjà effectués"],
+    correct:[0,1,3,4] },
+  { id:'q09', theme:"Numéros d'urgence", type:'single',
+    texte:"Le numéro 112 est :",
+    options:["Le numéro exclusif des pompiers en France","Le numéro européen d'urgence accessible même sans carte SIM ni crédit","Un numéro réservé aux accidents de la route","Le numéro des services médicaux uniquement"], correct:1 },
+  { id:'q10', theme:'Gestes de secours', type:'single',
+    texte:"Face à une personne inconsciente qui respire, la priorité immédiate est de :",
+    options:["Débuter immédiatement la RCP","La placer en PLS et alerter les secours","Lui administrer de l'oxygène","Attendre qu'elle reprenne conscience"], correct:1 },
+  { id:'q11', theme:'Gestes de secours', type:'single',
+    texte:"À quelle distance au-dessus de la plaie doit être positionné un garrot ?",
+    options:["1 à 2 cm","5 à 7 cm","10 à 15 cm","20 cm"], correct:1 },
+  { id:'q12', theme:'Gestes de secours', type:'multi',
+    texte:"Concernant le garrot de fortune, quelles affirmations sont correctes ? (plusieurs réponses possibles)",
+    options:["Il doit avoir une largeur minimale de 4 cm","Un lacet ou une cordelette fine est acceptable en cas d'urgence","L'heure de pose doit être notée sur la victime","Il ne doit jamais être posé sur une articulation","Il peut être retiré dès que le saignement s'arrête"],
+    correct:[0,2,3] },
+  { id:'q13', theme:'Gestes de secours', type:'single',
+    texte:"Pour un nourrisson en OVACE totale, quelles manœuvres réalise-t-on en alternance ?",
+    options:["5 compressions abdominales + 5 claques dans le dos","5 claques dans le dos + 5 compressions thoraciques","5 insufflations + 5 compressions thoraciques","5 claques dans le dos + 5 compressions abdominales"], correct:1 },
+  { id:'q14', theme:'Gestes de secours', type:'multi',
+    texte:"Lors de la démonstration d'utilisation d'un DAE, quelles étapes sont obligatoires ? (plusieurs réponses possibles)",
+    options:["Mettre le DAE en marche dès qu'on l'a en main","Placer les électrodes aux emplacements indiqués","S'assurer que personne ne touche la victime avant le choc","Reprendre la RCP immédiatement après le choc","Vérifier le pouls avant de reprendre la RCP"],
+    correct:[0,1,2,3] },
+  { id:'q15', theme:'Gestes de secours', type:'single',
+    texte:"Quelle est la fréquence correcte des compressions thoraciques lors d'une RCP adulte ?",
+    options:["60 à 80 par minute","80 à 100 par minute","100 à 120 par minute","120 à 140 par minute"], correct:2 },
+];
+
+// ═══════════════════════════════════════════════════════════
+// CONSTANTES
+// ═══════════════════════════════════════════════════════════
+const SHARED_KEY  = 'formapp_data';
+const CRIT_KEY    = 'formapp_criteres';
+const QCM_KEY     = 'formapp_qcm_results';
+const CODES_KEY   = 'formapp_qcm_codes';
+const ADMIN_PWD   = 'formateur2026';   // ← mot de passe formateur (modifiable ici)
+
+const AV_COLORS = [
+  {bg:'#1a2a4a',fg:'#6c8fff'},{bg:'#0e2a1a',fg:'#4ade80'},
+  {bg:'#2a1a0e',fg:'#fb923c'},{bg:'#2a1e08',fg:'#fbbf24'},
+  {bg:'#1e0e2a',fg:'#a78bfa'},
+];
+
+// ═══════════════════════════════════════════════════════════
+// STORAGE HELPERS
+// ═══════════════════════════════════════════════════════════
+const getAppData   = () => { const r=localStorage.getItem(SHARED_KEY); return r?JSON.parse(r):{candidats:[]}; };
+const saveAppData  = d  => localStorage.setItem(SHARED_KEY, JSON.stringify(d));
+const getQCMRes    = () => { const r=localStorage.getItem(QCM_KEY); return r?JSON.parse(r):{}; };
+const getCodes     = () => { const r=localStorage.getItem(CODES_KEY); return r?JSON.parse(r):{}; };
+const saveCodes    = c  => localStorage.setItem(CODES_KEY, JSON.stringify(c));
+  if(typeof saveAndSync==="function") saveAndSync();
+
+// ═══════════════════════════════════════════════════════════
+// GÉNÉRATION DES CODES
+// ═══════════════════════════════════════════════════════════
+const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // pas O/0/I/1
+
+function genCode() {
+  let c = '';
+  for (let i=0; i<6; i++) c += CHARSET[Math.floor(Math.random()*CHARSET.length)];
+  return c;
+}
+
+function ensureCodes() {
+  // Crée un code pour chaque candidat non-absent qui n'en a pas encore
+  const appData = getAppData();
+  const codes = getCodes();
+  let changed = false;
+  appData.candidats.filter(c=>c.statut!=='absent').forEach(c => {
+    if (!codes[c.id]) {
+      let code, tries=0;
+      const usedCodes = Object.values(codes).map(x=>x.code);
+      do { code=genCode(); tries++; } while (usedCodes.includes(code) && tries<100);
+      codes[c.id] = { code, candidatId:c.id };
+      changed = true;
+    }
+  });
+  if (changed) saveCodes(codes);
+  return codes;
+}
+
+function regenAll() {
+  if (!confirm('Régénérer TOUS les codes ? Les anciens codes ne fonctionneront plus.')) return;
+  const appData = getAppData();
+  const codes = {};
+  const usedCodes = [];
+  appData.candidats.filter(c=>c.statut!=='absent').forEach(c => {
+    let code, tries=0;
+    do { code=genCode(); tries++; } while (usedCodes.includes(code) && tries<100);
+    usedCodes.push(code);
+    codes[c.id] = { code, candidatId:c.id };
+  });
+  saveCodes(codes);
+  renderAdminTable();
+  renderAdminStats();
+  showToast('Tous les codes ont été régénérés');
+}
+
+function regen() {
+  ensureCodes();
+  renderAdminTable();
+  renderAdminStats();
+  showToast('Codes manquants générés');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ÉTAT
+// ═══════════════════════════════════════════════════════════
+let activeCandId = null;
+let qcmSet = [];
+let answers = {};
+let timerSec = 0, timerInt = null;
+
+// ═══════════════════════════════════════════════════════════
+// ÉCRAN 0 — CODE
+// ═══════════════════════════════════════════════════════════
+function onCodeInput() {
+  const v = document.getElementById('codeInput').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  document.getElementById('codeInput').value = v;
+  document.getElementById('loginBtn').disabled = v.length < 6;
+  document.getElementById('codeErr').textContent = '';
+  document.getElementById('codeInput').classList.remove('error');
+}
+
+function onCodeKey(e) {
+  if (e.key === 'Enter') validateCode();
+}
+
+function validateCode() {
+  const input = document.getElementById('codeInput').value.trim().toUpperCase();
+  const codes = ensureCodes();
+
+  // Cherche le candidatId correspondant au code
+  const entry = Object.values(codes).find(c => c.code === input);
+  if (!entry) {
+    document.getElementById('codeInput').classList.add('error');
+    document.getElementById('codeErr').textContent = 'Code incorrect. Vérifiez l\'e-mail reçu.';
+    setTimeout(()=>{
+      document.getElementById('codeInput').classList.remove('error');
+    }, 700);
+    return;
+  }
+
+  const appData = getAppData();
+  const cand = appData.candidats.find(c => c.id === entry.candidatId);
+  if (!cand) {
+    document.getElementById('codeErr').textContent = 'Candidat introuvable. Contactez votre formateur.';
+    return;
+  }
+
+  activeCandId = cand.id;
+  showConfirmScreen(cand);
+}
+
+// ═══════════════════════════════════════════════════════════
+// ÉCRAN 1 — CONFIRMATION
+// ═══════════════════════════════════════════════════════════
+function showConfirmScreen(cand) {
+  const ci = appData_indexOf(cand.id) % AV_COLORS.length;
+  const col = AV_COLORS[ci];
+  const av = document.getElementById('confirmAvatar');
+  av.textContent = cand.prenom[0] + cand.nom[0];
+  av.style.background = col.bg; av.style.color = col.fg;
+  document.getElementById('confirmName').textContent = `${cand.prenom} ${cand.nom}`;
+  document.getElementById('confirmId').textContent = cand.id;
+  document.getElementById('confNbQ').textContent = QUESTIONS.length + ' questions';
+
+  const prev = getQCMRes()[cand.id];
+  const alreadyEl = document.getElementById('confirmAlready');
+  if (prev) {
+    alreadyEl.style.display = 'block';
+    const d = new Date(prev.date).toLocaleString('fr-FR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    alreadyEl.textContent = `⚠️ Vous avez déjà passé ce QCM le ${d}. Repasser le QCM remplacera votre résultat précédent.`;
+  } else {
+    alreadyEl.style.display = 'none';
+  }
+
+  showScreen('screenConfirm');
+}
+
+function appData_indexOf(id) {
+  return getAppData().candidats.findIndex(c=>c.id===id);
+}
+
+function goBackToLogin() {
+  document.getElementById('codeInput').value = '';
+  document.getElementById('codeErr').textContent = '';
+  document.getElementById('loginBtn').disabled = true;
+  activeCandId = null;
+  showScreen('screenLogin');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ÉCRAN 2 — QUESTIONS
+// ═══════════════════════════════════════════════════════════
+function startQCM() {
+  const appData = getAppData();
+  const cand = appData.candidats.find(c=>c.id===activeCandId);
+  qcmSet = [...QUESTIONS].sort(()=>Math.random()-0.5);
+  answers = {};
+
+  document.getElementById('qcmCandLbl').textContent = `${cand?.prenom} ${cand?.nom} — ${cand?.id}`;
+  document.getElementById('navRight').innerHTML = `<span style="font-size:0.74rem;color:var(--ink3);font-family:'Syne Mono',monospace">${cand?.prenom} ${cand?.nom}</span>`;
+
+  timerSec = 0; clearInterval(timerInt);
+  timerInt = setInterval(()=>{ timerSec++; renderTimer(); }, 1000);
+
+  renderQuestions();
+  updateProgress();
+  showScreen('screenQCM');
+  window.scrollTo(0,0);
+}
+
+function renderQuestions() {
+  const c = document.getElementById('qContainer');
+  c.innerHTML = '';
+  const L = ['A','B','C','D','E'];
+  qcmSet.forEach((q,idx) => {
+    const div = document.createElement('div');
+    div.className = 'q-card'; div.id = `qcard_${q.id}`;
+    div.style.animationDelay = `${idx*0.03}s`;
+    const isM = q.type==='multi';
+    div.innerHTML = `
+      <div class="q-meta">
+        <div class="q-num">Q${String(idx+1).padStart(2,'0')}</div>
+        <div class="q-theme">${q.theme}</div>
+        <div class="q-type ${isM?'multi':'single'}">${isM?'Plusieurs réponses':'Une seule réponse'}</div>
+      </div>
+      <div class="q-text">${q.texte}</div>
+      <div class="q-opts">
+        ${q.options.map((o,oi)=>`
+          <div class="q-opt" id="opt_${q.id}_${oi}" onclick="toggleAns('${q.id}',${oi})">
+            <div class="q-ind ${isM?'check':'radio'}"></div>
+            <div class="q-letter">${L[oi]}</div>
+            <div class="q-opt-text">${o}</div>
+          </div>`).join('')}
+      </div>`;
+    c.appendChild(div);
+  });
+}
+
+function toggleAns(qid, oi) {
+  const q = qcmSet.find(x=>x.id===qid);
+  if (!q) return;
+  if (q.type==='single') {
+    answers[qid] = oi;
+    q.options.forEach((_,i)=>document.getElementById(`opt_${qid}_${i}`)?.classList.toggle('sel',i===oi));
+  } else {
+    if (!answers[qid]) answers[qid] = new Set();
+    const s = answers[qid];
+    if (s.has(oi)) s.delete(oi); else s.add(oi);
+    if (s.size===0) delete answers[qid];
+    document.getElementById(`opt_${qid}_${oi}`)?.classList.toggle('sel', answers[qid]?.has(oi)||false);
+  }
+  const hasAns = answers[qid]!==undefined && (q.type==='single' || answers[qid].size>0);
+  document.getElementById(`qcard_${qid}`)?.classList.toggle('answered', hasAns);
+  updateProgress();
+}
+
+function isAnswered(q) {
+  if (q.type==='single') return answers[q.id]!==undefined;
+  return answers[q.id] instanceof Set && answers[q.id].size>0;
+}
+
+function updateProgress() {
+  const done = qcmSet.filter(isAnswered).length, total=qcmSet.length;
+  document.getElementById('progFill').style.width = (done/total*100)+'%';
+  document.getElementById('progTxt').textContent = `${done}/${total}`;
+  const all = done===total;
+  document.getElementById('submitBtn').disabled = !all;
+  const hint = document.getElementById('submitHint');
+  hint.textContent = all ? 'Toutes les questions sont répondues — vous pouvez valider.' : `${total-done} question(s) sans réponse.`;
+  hint.style.color = all ? 'var(--green)' : 'var(--ink3)';
+}
+
+function renderTimer() {
+  const m=Math.floor(timerSec/60), s=timerSec%60;
+  document.getElementById('timerTxt').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  document.getElementById('timerEl').className = 'timer'+(timerSec>1500?' danger':timerSec>900?' warn':'');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SOUMISSION
+// ═══════════════════════════════════════════════════════════
+function submitQCM() {
+  if (!qcmSet.every(isAnswered)) return;
+  clearInterval(timerInt);
+
+  let correct=0;
+  const themeStats={};
+  qcmSet.forEach(q => {
+    if (!themeStats[q.theme]) themeStats[q.theme]={ok:0,total:0};
+    themeStats[q.theme].total++;
+    let ok=false;
+    if (q.type==='single') {
+      ok = answers[q.id]===q.correct;
+    } else {
+      const chosen = answers[q.id] instanceof Set ? [...answers[q.id]] : [];
+      const exp = Array.isArray(q.correct)?q.correct:[q.correct];
+      ok = exp.length===chosen.length && exp.every(i=>chosen.includes(i));
+    }
+    if (ok) { correct++; themeStats[q.theme].ok++; }
+  });
+
+  const total=qcmSet.length;
+  const scoreSur20 = Math.round(correct/total*20*10)/10;
+
+  // Persistance
+  persistResult(activeCandId, { candidatId:activeCandId, date:new Date().toISOString(), score:correct, total, scoreSur20, pct:Math.round(correct/total*100), duration:timerSec, themeStats });
+
+  document.getElementById('submitBtn').textContent = '✓ Enregistrement…';
+  document.getElementById('submitBtn').style.background = 'var(--green)';
+  document.getElementById('submitBtn').disabled = true;
+
+  setTimeout(()=>showEndScreen(), 900);
+}
+
+function persistResult(candidatId, result) {
+  // QCM results store
+  const all = getQCMRes(); all[candidatId]=result;
+  localStorage.setItem(QCM_KEY, JSON.stringify(all));
+  if(typeof saveAndSync==="function") saveAndSync();
+
+  // Sync score → appData
+  const appData = getAppData();
+  const cand = appData.candidats.find(c=>c.id===candidatId);
+  if (cand) {
+    if (!cand.scores) cand.scores={};
+    cand.scores['a7'] = result.scoreSur20;
+    saveAppData(appData);
+  }
+
+  // Sync niveaux → critères encadrant
+  const critRaw = localStorage.getItem(CRIT_KEY);
+  if (critRaw) {
+    const critData = JSON.parse(critRaw);
+    if (!critData.evaluations) critData.evaluations={};
+    if (!critData.evaluations[candidatId]) critData.evaluations[candidatId]={};
+    const s=result.scoreSur20;
+    const niv = s>=15?4:s>=10?3:s>=5?2:1;
+    ['cr30','cr31','cr32'].forEach(id=>{ critData.evaluations[candidatId][id]=niv; });
+    localStorage.setItem(CRIT_KEY, JSON.stringify(critData));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ÉCRAN 3 — FIN ÉPURÉE
+// ═══════════════════════════════════════════════════════════
+function showEndScreen() {
+  const appData = getAppData();
+  const cand = appData.candidats.find(c=>c.id===activeCandId);
+  document.getElementById('endName').textContent = `${cand?.prenom} ${cand?.nom}`;
+  showScreen('screenEnd');
+  window.scrollTo(0,0);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANNEAU ADMIN
+// ═══════════════════════════════════════════════════════════
+const ADMIN_PWD_STORED = ADMIN_PWD;
+
+function openAdminModal() {
+  document.getElementById('adminPwdInput').value = '';
+  document.getElementById('adminPwdErr').textContent = '';
+  document.getElementById('adminPwdInput').classList.remove('error');
+  document.getElementById('adminModal').classList.add('open');
+  setTimeout(()=>document.getElementById('adminPwdInput').focus(), 100);
+}
+
+function closeAdminModal() {
+  document.getElementById('adminModal').classList.remove('open');
+}
+
+function checkAdminPwd() {
+  const v = document.getElementById('adminPwdInput').value;
+  if (v === ADMIN_PWD_STORED) {
+    closeAdminModal();
+    openAdmin();
+  } else {
+    document.getElementById('adminPwdInput').classList.add('error');
+    document.getElementById('adminPwdErr').textContent = 'Mot de passe incorrect.';
+    setTimeout(()=>document.getElementById('adminPwdInput').classList.remove('error'),600);
+  }
+}
+
+document.getElementById('adminModal').addEventListener('click', e=>{
+  if (e.target===e.currentTarget) closeAdminModal();
+});
+
+function openAdmin() {
+  ensureCodes();
+  renderAdminStats();
+  renderAdminTable();
+  showScreen('screenAdmin');
+  window.scrollTo(0,0);
+}
+
+function renderAdminStats() {
+  const appData = getAppData();
+  const codes = getCodes();
+  const results = getQCMRes();
+  const candidats = appData.candidats.filter(c=>c.statut!=='absent');
+  const done = candidats.filter(c=>results[c.id]).length;
+  const pending = candidats.length - done;
+  const scores = candidats.filter(c=>results[c.id]).map(c=>results[c.id].scoreSur20);
+  const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : '—';
+
+  document.getElementById('adminStats').innerHTML = `
+    <div class="admin-stat"><div class="admin-stat-num">${candidats.length}</div><div class="admin-stat-lbl">Candidats</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" style="color:var(--green)">${done}</div><div class="admin-stat-lbl">QCM passés</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" style="color:var(--orange)">${pending}</div><div class="admin-stat-lbl">En attente</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" style="color:var(--accent)">${avg}</div><div class="admin-stat-lbl">Moy. /20</div></div>`;
+}
+
+function renderAdminTable() {
+  const appData = getAppData();
+  const codes = getCodes();
+  const results = getQCMRes();
+  const q = (document.getElementById('adminSearch')?.value||'').toLowerCase();
+
+  const rows = appData.candidats
+    .filter(c=>c.statut!=='absent')
+    .filter(c=>!q || (c.prenom+' '+c.nom+' '+c.id).toLowerCase().includes(q));
+
+  const tbody = document.getElementById('adminTbody');
+  tbody.innerHTML = '';
+
+  rows.forEach((c,i) => {
+    const entry = codes[c.id];
+    const code = entry?.code || '——';
+    const res = results[c.id];
+    const ci = appData.candidats.findIndex(x=>x.id===c.id) % AV_COLORS.length;
+    const col = AV_COLORS[ci];
+    const scoreTxt = res ? res.scoreSur20.toFixed(1) : '—';
+    const scoreClass = res ? (res.scoreSur20>=12?'high':res.scoreSur20>=8?'mid':'low') : '';
+    const dateTxt = res ? new Date(res.date).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="td-code">${code}</span>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:9px">
+          <div style="width:28px;height:28px;border-radius:50%;background:${col.bg};color:${col.fg};display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:0.62rem;font-weight:700;flex-shrink:0">${c.prenom[0]}${c.nom[0]}</div>
+          <div><div class="td-name">${c.prenom} ${c.nom}</div><div class="td-id">${c.id}</div></div>
+        </div>
+      </td>
+      <td><span class="status-badge ${res?'done':'pending'}">${res?'Passé':'En attente'}</span></td>
+      <td><span class="td-score ${scoreClass}">${scoreTxt}${res?'/20':''}</span></td>
+      <td class="td-date">${dateTxt}</td>
+      <td>
+        <button class="copy-btn" id="cpybtn_${c.id}" onclick="copyCode('${code}','${c.id}')">
+          📋 Copier
+        </button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--ink3);font-size:0.82rem">Aucun candidat trouvé</td></tr>`;
+  }
+}
+
+function copyCode(code, candId) {
+  const appData = getAppData();
+  const cand = appData.candidats.find(c=>c.id===candId);
+  const text = `Votre code d'accès au QCM Formation de Formateur : ${code}`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById(`cpybtn_${candId}`);
+    if (btn) { btn.classList.add('copied'); btn.textContent = '✓ Copié'; setTimeout(()=>{ btn.classList.remove('copied'); btn.textContent = '📋 Copier'; },2000); }
+    showToast(`Code ${code} copié pour ${cand?.prenom} ${cand?.nom}`);
+  }).catch(()=>{
+    showToast(`Code : ${code}`);
+  });
+}
+
+function exportCodesCSV() {
+  const appData = getAppData();
+  const codes = getCodes();
+  const results = getQCMRes();
+  let csv = 'Prénom,Nom,ID,Code accès,QCM passé,Score /20,Date\n';
+  appData.candidats.filter(c=>c.statut!=='absent').forEach(c=>{
+    const code = codes[c.id]?.code||'';
+    const res = results[c.id];
+    csv += `${c.prenom},${c.nom},${c.id},${code},${res?'Oui':'Non'},${res?res.scoreSur20:''},${res?new Date(res.date).toLocaleString('fr-FR'):''}\n`;
+  });
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='codes_qcm.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Export CSV téléchargé');
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── BOOT ──
+ensureCodes(); // Génère les codes au 1er chargement si besoin
+</script>
+
+<script>
+// ── FormApp unified nav ──
+(function() {
+  var MAP = {'apprenant.html':'apprenant','encadrant.html':'encadrant','admin.html':'admin','qcm.html':'qcm'};
+  function patchLinks() {
+    document.querySelectorAll('a[href]').forEach(function(a) {
+      var h = a.getAttribute('href');
+      if (MAP[h]) {
+        a.removeAttribute('href');
+        a.style.cursor = 'pointer';
+        a.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (window.parent !== window) window.parent.postMessage({type:'formapp-goto',target:MAP[h]}, '*');
+          else window.location.href = h;
+        });
+      }
+    });
+    // location.href assignments handled by native navigation if not in iframe
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', patchLinks);
+  else patchLinks();
+  // Listen for focus signal from portal
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'formapp-focus') {
+      // optional: refresh dynamic content here
+    }
+  });
+})();
+</script>
+</body>
+</html>
