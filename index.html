@@ -354,10 +354,10 @@ function checkAuth() {
   const input    = document.getElementById('authInput').value;
   const expected = PASSWORDS[pendingModule];
   if (input === expected) {
-    setAuth(pendingModule);
+    const targetModule = pendingModule; // sauvegarder AVANT closeAuth qui remet null
+    setAuth(targetModule);
     closeAuth();
-    // Accès direct à l'interface sans repasser par le portail
-    openModule(pendingModule);
+    openModule(targetModule); // utiliser la copie sauvegardée
   } else {
     const inp = document.getElementById('authInput');
     inp.classList.add('error');
