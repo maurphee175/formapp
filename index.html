@@ -275,42 +275,51 @@ iframe.active { display: block; opacity: 1; }
 // MOTS DE PASSE — modifiez ces valeurs
 // ═══════════════════════════════════════════════════════
 const PASSWORDS = {
-  encadrant: 'encadrant2026',   // ← changez ce mot de passe
-  admin:     'admin2026',       // ← changez ce mot de passe
+  encadrant: 'encadrant2026',
+  admin:     'admin2026',
 };
 
-// Sessions authentifiées (durée : jusqu'à fermeture du navigateur)
+// ═══════════════════════════════════════════════════════
+// MODULES CONFIG
+// ═══════════════════════════════════════════════════════
+const MODULES = {
+  apprenant: { file:'apprenant.html', label:'Mon espace',     badge:'Apprenant', color:'#6c8fff', protected:false },
+  qcm:       { file:'qcm.html',       label:'QCM',            badge:'QCM',        color:'#fbbf24', protected:false },
+  encadrant: { file:'encadrant.html', label:'Encadrant',      badge:'Encadrant',  color:'#4ade80', protected:true  },
+  admin:     { file:'admin.html',     label:'Administration', badge:'Admin',      color:'#f87171', protected:true  },
+};
+
+let activeModule = null;
+const loaded = {};
+let pendingModule = null;
+
+// ═══════════════════════════════════════════════════════
+// AUTH — sessionStorage uniquement
+// Vidé à la fermeture de l'onglet + à la déconnexion
+// ═══════════════════════════════════════════════════════
 const AUTH_KEY = 'formapp_auth';
 
 function getAuth() {
   try { return JSON.parse(sessionStorage.getItem(AUTH_KEY) || '{}'); }
   catch(e) { return {}; }
 }
-function setAuth(module) {
-  const a = getAuth();
-  a[module] = true;
+function setAuth(mod) {
+  const a = getAuth(); a[mod] = true;
   sessionStorage.setItem(AUTH_KEY, JSON.stringify(a));
 }
-function isAuth(module) {
-  return !!getAuth()[module];
-}
-function clearAuth() {
-  sessionStorage.removeItem(AUTH_KEY);
-}
+function isAuth(mod) { return !!getAuth()[mod]; }
 
-// ═══════════════════════════════════════════════════════
-// MODULES CONFIG
-// ═══════════════════════════════════════════════════════
-const MODULES = {
-  apprenant: { file:'apprenant.html', label:'Mon espace',     badge:'🎓 Apprenant', color:'#6c8fff', protected:false },
-  qcm:       { file:'qcm.html',       label:'QCM',            badge:'📝 QCM',        color:'#fbbf24', protected:false },
-  encadrant: { file:'encadrant.html', label:'Encadrant',      badge:'✏️ Encadrant',  color:'#4ade80', protected:true },
-  admin:     { file:'admin.html',     label:'Administration', badge:'⚙️ Admin',      color:'#f87171', protected:true },
-};
-
-let activeModule = null;
-const loaded = {};
-let pendingModule = null; // module en attente d'auth
+function clearAllAuth() {
+  sessionStorage.clear();
+  // Vider les iframes protégées pour qu'elles perdent leur état
+  ['encadrant', 'admin'].forEach(function(id) {
+    const frame = document.getElementById('frame-' + id);
+    if (frame && loaded[id]) {
+      frame.src = 'about:blank';
+      loaded[id] = false;
+    }
+  });
+}
 
 // ═══════════════════════════════════════════════════════
 // AUTH MODAL
@@ -318,46 +327,44 @@ let pendingModule = null; // module en attente d'auth
 function requireAuth(moduleId) {
   const mod = MODULES[moduleId];
   if (!mod) return;
-
-  // Déjà authentifié pour ce module ?
+  // Déjà authentifié → accès direct
   if (!mod.protected || isAuth(moduleId)) {
     openModule(moduleId);
     return;
   }
-
   // Afficher la modal
   pendingModule = moduleId;
-  const icons = { encadrant:'✏️', admin:'⚙️' };
+  const icons  = { encadrant:'✏️', admin:'⚙️' };
   const labels = { encadrant:'Espace Encadrant', admin:'Administration' };
-  const subs = {
+  const subs   = {
     encadrant: 'Cet espace est réservé aux encadrants et formateurs.',
-    admin:     'Cet espace est réservé aux administrateurs.',
+    admin: 'Cet espace est réservé aux administrateurs.',
   };
-  document.getElementById('authIcon').textContent = icons[moduleId] || '🔒';
+  document.getElementById('authIcon').textContent  = icons[moduleId]  || '🔒';
   document.getElementById('authTitle').textContent = labels[moduleId] || 'Accès restreint';
-  document.getElementById('authSub').textContent = subs[moduleId] || '';
+  document.getElementById('authSub').textContent   = subs[moduleId]   || '';
   document.getElementById('authInput').value = '';
   document.getElementById('authError').textContent = '';
   document.getElementById('authInput').classList.remove('error');
   document.getElementById('authModal').classList.add('open');
-  setTimeout(() => document.getElementById('authInput').focus(), 150);
+  setTimeout(function() { document.getElementById('authInput').focus(); }, 150);
 }
 
 function checkAuth() {
-  const input = document.getElementById('authInput').value;
+  const input    = document.getElementById('authInput').value;
   const expected = PASSWORDS[pendingModule];
-
   if (input === expected) {
     setAuth(pendingModule);
     closeAuth();
+    // Accès direct à l'interface sans repasser par le portail
     openModule(pendingModule);
   } else {
     const inp = document.getElementById('authInput');
     inp.classList.add('error');
     document.getElementById('authError').textContent = 'Mot de passe incorrect.';
     inp.value = '';
-    setTimeout(() => inp.classList.remove('error'), 600);
-    setTimeout(() => inp.focus(), 100);
+    setTimeout(function() { inp.classList.remove('error'); }, 600);
+    setTimeout(function() { inp.focus(); }, 100);
   }
 }
 
@@ -366,15 +373,21 @@ function closeAuth() {
   pendingModule = null;
 }
 
-document.getElementById('authModal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeAuth();
-});
-
+// ═══════════════════════════════════════════════════════
+// DÉCONNEXION STRICTE
+// ═══════════════════════════════════════════════════════
 function logout() {
-  clearAuth();
+  clearAllAuth();
   goPortal();
   document.getElementById('logoutBtn').classList.remove('visible');
   document.getElementById('sessionBadge').style.display = 'none';
+  // Notifier toutes les iframes
+  ['apprenant','encadrant','admin','qcm'].forEach(function(id) {
+    const frame = document.getElementById('frame-' + id);
+    if (frame && loaded[id]) {
+      try { frame.contentWindow.postMessage({ type:'formapp-logout' }, '*'); } catch(e) {}
+    }
+  });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -384,16 +397,14 @@ function openModule(id) {
   const mod = MODULES[id];
   if (!mod) return;
 
-  // Masquer portail, afficher frames
   document.getElementById('portal').classList.add('hidden');
   document.getElementById('framesWrap').classList.add('visible');
 
-  // Tabs
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + id)?.classList.add('active');
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  const tab = document.getElementById('tab-' + id);
+  if (tab) tab.classList.add('active');
 
-  // Badge + bouton déconnexion (seulement pour les espaces protégés)
-  const badge = document.getElementById('sessionBadge');
+  const badge     = document.getElementById('sessionBadge');
   const logoutBtn = document.getElementById('logoutBtn');
   if (mod.protected) {
     badge.textContent = mod.badge;
@@ -406,13 +417,13 @@ function openModule(id) {
     logoutBtn.classList.remove('visible');
   }
 
-  // Iframes
-  document.querySelectorAll('iframe').forEach(f => f.classList.remove('active'));
+  document.querySelectorAll('iframe').forEach(function(f) { f.classList.remove('active'); });
   const frame = document.getElementById('frame-' + id);
 
   if (!loaded[id]) {
     showLoader(mod.label);
-    frame.onload = () => {
+    frame.onload = function() {
+      if (!frame.src || frame.src.indexOf('about:blank') !== -1) return;
       loaded[id] = true;
       hideLoader();
       frame.classList.add('active');
@@ -430,41 +441,38 @@ function openModule(id) {
 function goPortal() {
   document.getElementById('portal').classList.remove('hidden');
   document.getElementById('framesWrap').classList.remove('visible');
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('iframe').forEach(f => f.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('iframe').forEach(function(f) { f.classList.remove('active'); });
   document.getElementById('sessionBadge').style.display = 'none';
   document.getElementById('logoutBtn').classList.remove('visible');
   activeModule = null;
 }
 
-// ── Loader ──
 function showLoader(label) {
-  document.getElementById('loaderLbl').textContent = 'Chargement ' + label + '…';
+  document.getElementById('loaderLbl').textContent = 'Chargement ' + label + '...';
   document.getElementById('frameLoader').classList.add('show');
 }
 function hideLoader() {
   document.getElementById('frameLoader').classList.remove('show');
 }
 
-// ── Bouton retour injecté dans les iframes ──
 function injectBackBtn(frame, moduleId) {
   try {
     const doc = frame.contentDocument || frame.contentWindow.document;
     if (!doc) return;
-    doc.getElementById('formapp-back-btn')?.remove();
+    const old = doc.getElementById('formapp-back-btn');
+    if (old) old.remove();
     const btn = doc.createElement('div');
     btn.id = 'formapp-back-btn';
     btn.innerHTML = '← Accueil';
     btn.style.cssText = 'position:fixed;bottom:16px;left:16px;z-index:9999;' +
       'background:rgba(10,12,16,0.85);color:rgba(200,210,230,0.65);' +
       'border:1px solid rgba(100,120,160,0.2);' +
-      'font-family:"Syne","Instrument Sans",sans-serif;' +
       'font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;' +
-      'padding:7px 13px;border-radius:20px;cursor:pointer;backdrop-filter:blur(8px);' +
-      'transition:all 0.15s;';
-    btn.onmouseenter = () => { btn.style.color='#6c8fff'; btn.style.borderColor='rgba(108,143,255,0.4)'; };
-    btn.onmouseleave = () => { btn.style.color='rgba(200,210,230,0.65)'; btn.style.borderColor='rgba(100,120,160,0.2)'; };
-    btn.onclick = () => window.parent.postMessage({ type:'formapp-goto', target:'portal' }, '*');
+      'padding:7px 13px;border-radius:20px;cursor:pointer;transition:all 0.15s;';
+    btn.onmouseenter = function() { btn.style.color='#6c8fff'; btn.style.borderColor='rgba(108,143,255,0.4)'; };
+    btn.onmouseleave = function() { btn.style.color='rgba(200,210,230,0.65)'; btn.style.borderColor='rgba(100,120,160,0.2)'; };
+    btn.onclick = function() { window.parent.postMessage({ type:'formapp-goto', target:'portal' }, '*'); };
     doc.body.appendChild(btn);
     patchIframeLinks(doc);
   } catch(e) {}
@@ -472,11 +480,12 @@ function injectBackBtn(frame, moduleId) {
 
 function patchIframeLinks(doc) {
   const map = { 'apprenant.html':'apprenant','encadrant.html':'encadrant','admin.html':'admin','qcm.html':'qcm' };
-  doc.querySelectorAll('a[href]').forEach(a => {
+  doc.querySelectorAll('a[href]').forEach(function(a) {
     const h = a.getAttribute('href');
     if (map[h]) {
-      a.removeAttribute('href'); a.style.cursor = 'pointer';
-      a.addEventListener('click', e => {
+      a.removeAttribute('href');
+      a.style.cursor = 'pointer';
+      a.addEventListener('click', function(e) {
         e.preventDefault();
         window.parent.postMessage({ type:'formapp-goto', target:map[h] }, '*');
       });
@@ -485,7 +494,7 @@ function patchIframeLinks(doc) {
 }
 
 // ── Messages depuis les iframes ──
-window.addEventListener('message', e => {
+window.addEventListener('message', function(e) {
   if (!e.data) return;
   if (e.data.type === 'formapp-goto') {
     const t = e.data.target;
@@ -495,30 +504,39 @@ window.addEventListener('message', e => {
       else openModule(t);
     }
   }
-  // Relayer le signal d'activation mode edition vers l'iframe apprenant
+  if (e.data.type === 'formapp-logout') {
+    logout();
+  }
   if (e.data.type === 'formapp-enable-edit-apprenant') {
     const frame = document.getElementById('frame-apprenant');
     if (frame && frame.contentWindow) {
-      // Attendre que l'iframe soit chargée si nécessaire
       if (loaded['apprenant']) {
-        frame.contentWindow.postMessage({ type: 'formapp-enable-edit' }, '*');
+        frame.contentWindow.postMessage({ type:'formapp-enable-edit' }, '*');
       } else {
         frame.addEventListener('load', function() {
-          frame.contentWindow.postMessage({ type: 'formapp-enable-edit' }, '*');
+          frame.contentWindow.postMessage({ type:'formapp-enable-edit' }, '*');
         }, { once: true });
       }
     }
   }
 });
 
-// ── Préchargement silencieux des modules publics ──
-window.addEventListener('DOMContentLoaded', () => {
-  // Précharger apprenant et qcm (pas d'auth requise)
-  ['apprenant','qcm'].forEach((id, i) => {
-    setTimeout(() => {
+// ── Auth modal — fermeture au clic extérieur ──
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('authModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === e.currentTarget) closeAuth();
+    });
+  }
+
+  // Préchargement silencieux des modules publics
+  ['apprenant','qcm'].forEach(function(id, i) {
+    setTimeout(function() {
       if (loaded[id]) return;
       const frame = document.getElementById('frame-' + id);
-      frame.onload = () => {
+      if (!frame) return;
+      frame.onload = function() {
         loaded[id] = true;
         if (activeModule === id) { hideLoader(); frame.classList.add('active'); injectBackBtn(frame, id); }
       };

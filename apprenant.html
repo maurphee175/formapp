@@ -499,8 +499,12 @@ function showApp(cand) {
   document.getElementById('heroName').textContent = cand.prenom + ' ' + cand.nom;
   const appData = getAppData();
   const appData2 = getAppData();
-  document.getElementById('heroMeta').textContent =
-    [cand.id, appData2.promo, appData2.date].filter(Boolean).join(' · ');
+  const metaParts = [cand.id];
+  if (cand.cs)     metaParts.push('CS : ' + cand.cs);
+  if (cand.tuteur) metaParts.push('Tuteur : ' + cand.tuteur);
+  if (appData2.promo) metaParts.push(appData2.promo);
+  if (appData2.date)  metaParts.push(appData2.date);
+  document.getElementById('heroMeta').textContent = metaParts.join(' · ');
 
   // Ressources
   renderResources();
@@ -720,6 +724,15 @@ window.addEventListener('message', e => {
         if (cand) showApp(cand);
       } catch(er) {}
     }
+  }
+  // Déconnexion forcée depuis le portail
+  if (e.data?.type === 'formapp-logout') {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem('formapp_edit_mode');
+    document.getElementById('screenApp').style.display = 'none';
+    document.getElementById('screenLogin').style.display = 'flex';
+    document.getElementById('loginId').value = '';
+    document.getElementById('loginPwd').value = '';
   }
   if (e.data?.type === 'formapp-enable-edit') {
     enableEditMode();

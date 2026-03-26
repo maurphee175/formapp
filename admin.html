@@ -536,7 +536,7 @@ function saveAndSync() {
           </div>
         </div>
         <table>
-          <thead><tr><th>Candidat</th><th>Moyenne</th><th>Statut</th><th>Commentaire</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Candidat</th><th>CS</th><th>Tuteur</th><th>Moyenne</th><th>Statut</th><th>Commentaire</th><th>🔑 Mot de passe</th><th>Actions</th></tr></thead>
           <tbody id="candTableBody"></tbody>
         </table>
       </div>
@@ -680,7 +680,7 @@ function saveAndSync() {
       <div class="form-group"><label class="form-label">Nom</label><input type="text" class="form-input" id="mNom" placeholder="Dupont"></div>
     </div>
     <div class="modal-row">
-      <div class="form-group"><label class="form-label">Numéro candidat</label><input type="text" class="form-input" id="mId" placeholder="C-006"></div>
+      <div class="form-group"><label class="form-label">Matricule</label><input type="text" class="form-input" id="mId" placeholder="ex: MAT-001"></div>
       <div class="form-group"><label class="form-label">Statut initial</label>
         <select class="form-input" id="mStatut">
           <option value="en-cours">En cours</option>
@@ -689,12 +689,16 @@ function saveAndSync() {
       </div>
     </div>
     <div class="modal-row">
+      <div class="form-group"><label class="form-label">CS</label><input type="text" class="form-input" id="mCs" placeholder="ex: CS Paris Nord"></div>
+      <div class="form-group"><label class="form-label">Tuteur</label><input type="text" class="form-input" id="mTuteur" placeholder="Nom du tuteur"></div>
+    </div>
+    <div class="modal-row">
       <div class="form-group"><label class="form-label">Mot de passe stagiaire</label><input type="text" class="form-input" id="mPassword" placeholder="ex: martin2026"></div>
       <div class="form-group"><label class="form-label">E-mail (optionnel)</label><input type="email" class="form-input" id="mEmail" placeholder="prenom@email.fr"></div>
     </div>
     <div class="form-group"><label class="form-label">Commentaire</label><input type="text" class="form-input" id="mComment" placeholder="Remarques…"></div>
     <div style="background:var(--surface2);border-radius:6px;padding:10px 12px;font-size:0.75rem;color:var(--ink3);margin-bottom:14px;line-height:1.6">
-      💡 <b>Identifiant de connexion :</b> l'ID candidat (ex: C-001) ou prénom.nom<br>
+      💡 <b>Identifiant de connexion :</b> le matricule ou prénom.nom<br>
       Si le mot de passe est vide, il sera égal au prénom en minuscules par défaut.
     </div>
     <div class="modal-actions">
@@ -942,7 +946,7 @@ function renderDashTable() {
 // ── CANDIDATS TABLE ──
 function renderCandTable() {
   const q = document.getElementById('searchCand') ? document.getElementById('searchCand').value.toLowerCase() : '';
-  let list = [...data.candidats].filter(c => q ? (c.prenom + ' ' + c.nom + ' ' + c.id).toLowerCase().includes(q) : true);
+  let list = [...data.candidats].filter(c => q ? (c.prenom + ' ' + c.nom + ' ' + c.id + ' ' + (c.cs||'') + ' ' + (c.tuteur||'')).toLowerCase().includes(q) : true);
   const body = document.getElementById('candTableBody');
   if (!body) return;
   body.innerHTML = list.map((c, i) => {
@@ -953,6 +957,16 @@ function renderCandTable() {
         <div class="td-avatar" style="background:${AV_COLORS[ci%AV_COLORS.length]}20;color:${AV_COLORS[ci%AV_COLORS.length]}">${c.prenom[0]}${c.nom[0]}</div>
         <div><div class="td-name">${c.prenom} ${c.nom}</div><div class="td-id">${c.id}</div></div>
       </div></td>
+      <td>
+        <input type="text" value="${c.cs||''}" placeholder="—"
+          style="border:none;border-bottom:1px dashed var(--border);background:transparent;font-family:Instrument Sans,sans-serif;font-size:0.8rem;color:var(--ink2);outline:none;width:100%;padding:3px 0"
+          onchange="updateCs('${c.id}',this.value)">
+      </td>
+      <td>
+        <input type="text" value="${c.tuteur||''}" placeholder="—"
+          style="border:none;border-bottom:1px dashed var(--border);background:transparent;font-family:Instrument Sans,sans-serif;font-size:0.8rem;color:var(--ink2);outline:none;width:100%;padding:3px 0"
+          onchange="updateTuteur('${c.id}',this.value)">
+      </td>
       <td><span class="score-pill ${getScoreClass(moy)}">${moy !== null ? moy.toFixed(1) + '/20' : '—'}</span></td>
       <td>
         <select style="border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:0.75rem;background:var(--bg);color:var(--ink);outline:none;cursor:pointer" onchange="updateStatut('${c.id}',this.value)">
@@ -1386,6 +1400,16 @@ function updatePassword(id, pwd) {
   const c = data.candidats.find(x => x.id === id);
   if (c) { c.password = pwd.trim(); saveData(); }
 }
+function updateCs(id, cs) {
+  data = getData();
+  const c = data.candidats.find(x => x.id === id);
+  if (c) { c.cs = cs.trim(); saveData(); }
+}
+function updateTuteur(id, tuteur) {
+  data = getData();
+  const c = data.candidats.find(x => x.id === id);
+  if (c) { c.tuteur = tuteur.trim(); saveData(); }
+}
 function deleteCandidat(id) {
   if (!confirm('Supprimer ce candidat définitivement ?')) return;
   data.candidats = data.candidats.filter(c => c.id !== id);
@@ -1394,7 +1418,9 @@ function deleteCandidat(id) {
 
 // ── MODAL ──
 function openAddModal() {
-  document.getElementById('mId').value = 'C-' + String(data.candidats.length + 1).padStart(3, '0');
+  document.getElementById('mId').value = 'MAT-' + String(data.candidats.length + 1).padStart(3, '0');
+  document.getElementById('mCs').value = '';
+  document.getElementById('mTuteur').value = '';
   document.getElementById('modalOverlay').classList.add('open');
   document.getElementById('mPrenom').focus();
 }
@@ -1409,13 +1435,15 @@ function addCandidat() {
   const commentaire = document.getElementById('mComment').value.trim();
   const password = document.getElementById('mPassword')?.value.trim() || '';
   const email    = document.getElementById('mEmail')?.value.trim()    || '';
+  const cs       = document.getElementById('mCs')?.value.trim()       || '';
+  const tuteur   = document.getElementById('mTuteur')?.value.trim()   || '';
   if (!prenom || !nom || !id) { showToast('Champs requis manquants'); return; }
-  if (data.candidats.find(c => c.id === id)) { showToast('ID déjà existant'); return; }
+  if (data.candidats.find(c => c.id === id)) { showToast('Matricule déjà existant'); return; }
   const scores = {};
   data.ateliers.forEach(a => scores[a.id] = null);
-  data.candidats.push({ id, prenom, nom, scores, statut, commentaire, password, email });
+  data.candidats.push({ id, prenom, nom, scores, statut, commentaire, password, email, cs, tuteur });
   saveData(); closeModal();
-  ['mPrenom','mNom','mId','mComment','mPassword','mEmail'].forEach(i => {
+  ['mPrenom','mNom','mId','mComment','mPassword','mEmail','mCs','mTuteur'].forEach(i => {
     const el = document.getElementById(i); if (el) el.value = '';
   });
   renderDashboard();
@@ -1424,11 +1452,11 @@ function addCandidat() {
 
 // ── EXPORT ──
 function exportCSV() {
-  let csv = 'Candidat,ID,' + data.ateliers.map(a => a.nom).join(',') + ',Moyenne,Statut,Commentaire\n';
+  let csv = 'Candidat,Matricule,CS,Tuteur,' + data.ateliers.map(a => a.nom).join(',') + ',Moyenne,Statut,Commentaire\n';
   data.candidats.forEach(c => {
     const scores = data.ateliers.map(a => c.scores[a.id] !== null ? c.scores[a.id] : '').join(',');
     const moy = getMoyenne(c);
-    csv += `${c.prenom} ${c.nom},${c.id},${scores},${moy !== null ? moy.toFixed(1) : ''},${c.statut},"${c.commentaire}"\n`;
+    csv += `${c.prenom} ${c.nom},${c.id},"${c.cs||''}","${c.tuteur||''}",${scores},${moy !== null ? moy.toFixed(1) : ''},${c.statut},"${c.commentaire}"\n`;
   });
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -1536,21 +1564,20 @@ function getSiteUrl() {
 function buildEmailText(cand) {
   const pwd = cand.password || cand.prenom.toLowerCase();
   const url = getSiteUrl();
-  return `Bonjour ${cand.prenom},
-
-Voici vos identifiants pour accéder à votre espace stagiaire FormApp :
-
-  URL     : ${url}
-  Identifiant : ${cand.id}
-  Mot de passe : ${pwd}
-
-Vous trouverez dans cet espace :
-- L’application de révision PSC1
-- Vos fiches techniques et documents
-- L’accès au QCM théorique
-
-Bonne formation !
-L’équipe pédagogique`;
+  const csLine     = cand.cs     ? '  CS           : ' + cand.cs     + '\n' : '';
+  const tuteurLine = cand.tuteur ? '  Tuteur       : ' + cand.tuteur + '\n' : '';
+  return 'Bonjour ' + cand.prenom + ',\n\n' +
+    'Voici vos identifiants pour accéder à votre espace stagiaire FormApp :\n\n' +
+    '  URL          : ' + url + '\n' +
+    '  Matricule    : ' + cand.id + '\n' +
+    '  Mot de passe : ' + pwd + '\n' +
+    csLine + tuteurLine + '\n' +
+    'Vous trouverez dans cet espace :\n' +
+    '- L\u2019application de révision PSC1\n' +
+    '- Vos fiches techniques et documents\n' +
+    '- L\u2019accès au QCM théorique\n\n' +
+    'Bonne formation !\n' +
+    'L\u2019équipe pédagogique';
 }
 
 function openCredentialsModal() {
@@ -1719,6 +1746,624 @@ function renderCandTableWithPasswords() {
   // (extension de renderCandTable existante)
 }
 
+
+
+// ══════════════════════════════════════════════════════
+// HELPERS PDF ADMIN
+// ══════════════════════════════════════════════════════
+function admTogglePdfMenu() {
+  const m=document.getElementById('admPdfMenu');
+  m.style.display=m.style.display==='none'?'block':'none';
+}
+function admClosePdf() { document.getElementById('admPdfMenu').style.display='none'; }
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#admPdfMenu') && !e.target.closest('#admPdfBtn'))
+    admClosePdf();
+});
+function admPdfFicheModal() {
+  data = getData();
+  const liste = data.candidats.map(function(c){ return c.id + " - " + c.prenom + " " + c.nom; }).join("\n");
+  const sel = window.prompt("Saisissez l'ID du candidat (ex: C-001)\n\n" + liste);
+  if (sel) generateFicheCandidat(sel.trim());
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MODULE PDF — Grille d'évaluation FormApp
+// Génération côté client avec jsPDF (pas de serveur requis)
+// ══════════════════════════════════════════════════════════════════
+
+function loadJsPDF(callback) {
+  if (window.jspdf && window.jspdf.jsPDF) { callback(window.jspdf.jsPDF); return; }
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  s.onload = function() { callback(window.jspdf.jsPDF); };
+  s.onerror = function() { alert('Impossible de charger jsPDF. Vérifiez votre connexion.'); };
+  document.head.appendChild(s);
+}
+
+// ── Données communes ──
+function pdf_getCritData() {
+  try {
+    const r = localStorage.getItem('formapp_criteres');
+    return r ? JSON.parse(r) : null;
+  } catch(e) { return null; }
+}
+function pdf_getAppData() {
+  try {
+    const r = localStorage.getItem('formapp_data');
+    return r ? JSON.parse(r) : { candidats:[], date:'', promo:'', formateur:'' };
+  } catch(e) { return { candidats:[], date:'', promo:'', formateur:'' }; }
+}
+
+const PDF_NIVEAUX = [
+  { id:1, label:'Insuffisant',    color:[184,48,32],  range:'0–4' },
+  { id:2, label:'Fragile',        color:[196,96,16],  range:'5–9' },
+  { id:3, label:'Satisfaisant',   color:[26,112,64],  range:'10–14' },
+  { id:4, label:'Bonne maîtrise', color:[26,61,138],  range:'15–20' },
+];
+
+// ══════════════════════════════════════════════════════════════════
+// PDF 1 : GRILLE VIERGE — un atelier, tous les critères, colonnes 4 niveaux
+// ══════════════════════════════════════════════════════════════════
+function generateGrilleVierge(atelierIdOrAll) {
+  loadJsPDF(function(jsPDF) {
+    const crit = pdf_getCritData();
+    const app  = pdf_getAppData();
+    if (!crit || !crit.ateliers || crit.ateliers.length === 0) {
+      alert('Aucun critère disponible. Configurez les critères depuis l\'interface Admin.');
+      return;
+    }
+
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const W = 210, H = 297;
+    const ML = 12, MR = 12, MT = 14;
+    const CW = W - ML - MR; // 186mm
+
+    // Filtrer les ateliers
+    const ateliers = atelierIdOrAll === 'all'
+      ? crit.ateliers
+      : crit.ateliers.filter(a => a.id === atelierIdOrAll);
+
+    let firstPage = true;
+
+    ateliers.forEach(function(atelier) {
+      if (!firstPage) doc.addPage();
+      firstPage = false;
+
+      let y = MT;
+
+      // ── EN-TÊTE ──
+      // Bande titre
+      doc.setFillColor(28, 26, 22);
+      doc.rect(ML, y, CW, 12, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(10);
+      doc.text('FORMAPP · Formation de Formateur', ML+3, y+4.5);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.text('Grille d\'évaluation', ML+3, y+9);
+      // Promo / date à droite
+      doc.setFontSize(7.5);
+      const promoTxt = [app.promo, app.date].filter(Boolean).join(' · ');
+      if (promoTxt) doc.text(promoTxt, W-MR-3, y+9, { align:'right' });
+      y += 14;
+
+      // Titre atelier
+      doc.setFillColor(245,241,236);
+      doc.rect(ML, y, CW, 10, 'F');
+      doc.setDrawColor(200,195,188);
+      doc.setLineWidth(0.3);
+      doc.rect(ML, y, CW, 10, 'S');
+      doc.setTextColor(28,26,22);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(10.5);
+      doc.text((atelier.icon || '') + '  ' + atelier.nom, ML+3, y+6.8);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(120,115,108);
+      doc.text('Coeff. ×' + (atelier.coeff || 1), W-MR-3, y+6.8, { align:'right' });
+      y += 13;
+
+      // Candiat + évaluateur
+      doc.setFillColor(255,255,255);
+      doc.setDrawColor(200,195,188);
+      doc.setLineWidth(0.25);
+      const fieldH = 8;
+      const fieldW = (CW - 4) / 2;
+      // Candidat
+      doc.rect(ML, y, fieldW, fieldH, 'S');
+      doc.setTextColor(120,115,108); doc.setFontSize(7);
+      doc.text('Candidat :', ML+2, y+3);
+      doc.setDrawColor(160,155,148); doc.setLineWidth(0.2);
+      doc.line(ML+20, y+fieldH-1.5, ML+fieldW-2, y+fieldH-1.5);
+      // Evaluateur
+      doc.rect(ML+fieldW+4, y, fieldW, fieldH, 'S');
+      doc.text('Évaluateur :', ML+fieldW+6, y+3);
+      doc.line(ML+fieldW+28, y+fieldH-1.5, ML+2*fieldW+2, y+fieldH-1.5);
+      doc.setDrawColor(200,195,188);
+      y += fieldH + 5;
+
+      // ── LÉGENDE NIVEAUX ──
+      const nivW = CW / 4;
+      PDF_NIVEAUX.forEach(function(niv, i) {
+        const x = ML + i * nivW;
+        doc.setFillColor(niv.color[0], niv.color[1], niv.color[2]);
+        doc.rect(x, y, nivW, 1.5, 'F');
+        doc.setFillColor(niv.color[0]+60, niv.color[1]+60, niv.color[2]+60);
+        doc.rect(x, y+1.5, nivW, 5.5, 'F');
+        doc.setTextColor(255,255,255);
+        doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+        doc.text(niv.label.toUpperCase(), x + nivW/2, y+5.5, { align:'center' });
+      });
+      y += 9;
+
+      // Scores indicatifs
+      PDF_NIVEAUX.forEach(function(niv, i) {
+        const x = ML + i * nivW;
+        doc.setFillColor(248,245,242);
+        doc.rect(x, y, nivW, 5, 'F');
+        doc.setDrawColor(200,195,188); doc.setLineWidth(0.15);
+        doc.rect(x, y, nivW, 5, 'S');
+        doc.setTextColor(120,115,108); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+        doc.text(niv.range + ' / 20', x+nivW/2, y+3.5, { align:'center' });
+      });
+      y += 7;
+
+      // ── CRITÈRES ──
+      const allCriteres = [];
+      (atelier.sousSections || []).forEach(function(ss) {
+        (ss.criteres || []).forEach(function(cr) {
+          allCriteres.push({ ss: ss.titre, cr: cr });
+        });
+      });
+
+      let lastSS = null;
+      allCriteres.forEach(function(item, idx) {
+        // Saut de section
+        if (item.ss !== lastSS) {
+          lastSS = item.ss;
+          if (y > H - 30) { doc.addPage(); y = MT; }
+          y += 2;
+          doc.setFillColor(237,233,226);
+          doc.rect(ML, y, CW, 6, 'F');
+          doc.setTextColor(90,87,80);
+          doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+          doc.text(item.ss.toUpperCase(), ML+3, y+4.3);
+          y += 7;
+        }
+
+        // Saut de page si nécessaire
+        if (y > H - 35) { doc.addPage(); y = MT; }
+
+        const rowH = 20; // hauteur de ligne critère
+        const colNivW = CW * 0.17; // largeur colonne niveau
+        const labelW  = CW - 4 * colNivW;
+
+        // Fond alternance
+        if (idx % 2 === 0) {
+          doc.setFillColor(252,251,249);
+          doc.rect(ML, y, CW, rowH, 'F');
+        }
+
+        // Bordure ligne
+        doc.setDrawColor(220,215,208); doc.setLineWidth(0.15);
+        doc.rect(ML, y, CW, rowH, 'S');
+
+        // Numéro + label critère
+        doc.setTextColor(100,96,90); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+        doc.text('C' + String(idx+1).padStart(2,'0'), ML+2, y+4);
+        doc.setTextColor(28,26,22); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+        const labelLines = doc.splitTextToSize(item.cr.label || '', labelW-8);
+        doc.text(labelLines, ML+10, y+4);
+
+        // Colonnes niveaux avec descriptions
+        PDF_NIVEAUX.forEach(function(niv, ni) {
+          const nx = ML + labelW + ni * colNivW;
+          // Séparateur vertical
+          doc.setDrawColor(220,215,208); doc.setLineWidth(0.15);
+          doc.line(nx, y, nx, y+rowH);
+          // Description du niveau pour ce critère
+          const desc = (item.cr.descs && item.cr.descs[ni]) ? item.cr.descs[ni] : '';
+          if (desc) {
+            doc.setTextColor(80,77,72); doc.setFont('helvetica','normal'); doc.setFontSize(6);
+            const descLines = doc.splitTextToSize(desc, colNivW-2);
+            doc.text(descLines.slice(0,3), nx+1, y+3.5);
+          }
+          // Case à cocher en bas de la cellule
+          doc.setDrawColor(niv.color[0], niv.color[1], niv.color[2]);
+          doc.setLineWidth(0.4);
+          doc.rect(nx + colNivW/2 - 2.5, y + rowH - 5, 5, 4, 'S');
+        });
+
+        y += rowH;
+      });
+
+      // ── SCORE FINAL ──
+      if (y > H - 28) { doc.addPage(); y = MT; }
+      y += 3;
+      doc.setFillColor(28,26,22);
+      doc.rect(ML, y, CW, 10, 'F');
+      doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.text('SCORE FINAL', ML+4, y+6.5);
+      // Ligne score
+      doc.setTextColor(200,195,188); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+      doc.text('/ 20', W-MR-4, y+6.5, { align:'right' });
+      doc.setDrawColor(200,195,188); doc.setLineWidth(0.3);
+      doc.line(W-MR-20, y+6.5, W-MR-8, y+6.5);
+      y += 13;
+
+      // Observation
+      doc.setDrawColor(200,195,188); doc.setLineWidth(0.25);
+      doc.rect(ML, y, CW, 16, 'S');
+      doc.setTextColor(120,115,108); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+      doc.text('OBSERVATIONS', ML+3, y+4);
+      y += 18;
+
+      // Signature
+      const sigW = (CW-6)/2;
+      doc.rect(ML, y, sigW, 12, 'S');
+      doc.rect(ML+sigW+6, y, sigW, 12, 'S');
+      doc.setFont('helvetica','normal'); doc.setFontSize(7);
+      doc.text('Signature encadrant', ML+3, y+4);
+      doc.text('Date', ML+sigW+9, y+4);
+      y += 14;
+    });
+
+    // Numéros de page
+    const pageCount = doc.getNumberOfPages();
+    for (let p = 1; p <= pageCount; p++) {
+      doc.setPage(p);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7);
+      doc.setTextColor(160,155,148);
+      doc.text('FormApp · Grille d\'évaluation · Page ' + p + '/' + pageCount, W/2, H-6, { align:'center' });
+    }
+
+    const promoSlug = (app.promo || 'session').replace(/[^a-zA-Z0-9]/g,'-');
+    doc.save('grille_evaluation_' + promoSlug + '.pdf');
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PDF 2 : RÉSULTATS CANDIDAT — tous ateliers, niveaux cochés
+// ══════════════════════════════════════════════════════════════════
+function generateFicheCandidat(candidatId) {
+  loadJsPDF(function(jsPDF) {
+    const crit = pdf_getCritData();
+    const app  = pdf_getAppData();
+    if (!crit) { alert('Aucun critère disponible.'); return; }
+
+    const candidat = app.candidats.find(function(c) { return c.id === candidatId; });
+    if (!candidat) { alert('Candidat introuvable.'); return; }
+
+    const evals = (crit.evaluations && crit.evaluations[candidatId]) || {};
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const W = 210, H = 297, ML = 12, MR = 12, MT = 14;
+    const CW = W - ML - MR;
+
+    let firstPage = true;
+
+    crit.ateliers.forEach(function(atelier) {
+      if (!firstPage) doc.addPage();
+      firstPage = false;
+      let y = MT;
+
+      // En-tête
+      doc.setFillColor(28,26,22);
+      doc.rect(ML, y, CW, 12, 'F');
+      doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+      doc.text('FORMAPP · Fiche d\'évaluation candidat', ML+3, y+4.5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8);
+      doc.text(candidat.prenom + ' ' + candidat.nom + ' — ' + candidat.id, ML+3, y+9);
+      const promoTxt = [app.promo, app.date].filter(Boolean).join(' · ');
+      doc.text(promoTxt, W-MR-3, y+9, { align:'right' });
+      y += 14;
+
+      // Titre atelier
+      doc.setFillColor(245,241,236);
+      doc.rect(ML, y, CW, 10, 'F');
+      doc.setDrawColor(200,195,188); doc.setLineWidth(0.3);
+      doc.rect(ML, y, CW, 10, 'S');
+      doc.setTextColor(28,26,22); doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
+      doc.text((atelier.icon||'') + '  ' + atelier.nom, ML+3, y+6.8);
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(120,115,108);
+      doc.text('Coeff. ×' + (atelier.coeff||1), W-MR-3, y+6.8, { align:'right' });
+      y += 13;
+
+      // Calcul score atelier
+      const allCr = [];
+      (atelier.sousSections||[]).forEach(function(ss){(ss.criteres||[]).forEach(function(cr){allCr.push({ss:ss.titre,cr:cr});});});
+      let pts = 0, count = 0;
+      allCr.forEach(function(item){
+        const n = evals[item.cr.id];
+        if (n) { pts += PDF_NIVEAUX.find(function(x){return x.id===n;}).score || 0; count++; }
+      });
+      const avgScore = count > 0 ? (pts / count).toFixed(1) : '—';
+
+      // Score badge
+      doc.setFillColor(237,233,226);
+      doc.roundedRect(W-MR-22, y-1, 20, 10, 2, 2, 'F');
+      doc.setTextColor(28,26,22); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      doc.text(avgScore + '/20', W-MR-12, y+6, { align:'center' });
+      y += 10;
+
+      // Critères avec niveaux cochés
+      let lastSS = null;
+      const nivW = CW * 0.13;
+      const labelW = CW - 4*nivW;
+
+      allCr.forEach(function(item, idx) {
+        if (item.ss !== lastSS) {
+          lastSS = item.ss;
+          if (y > H-25) { doc.addPage(); y = MT; }
+          y += 2;
+          doc.setFillColor(237,233,226);
+          doc.rect(ML, y, CW, 6, 'F');
+          doc.setTextColor(90,87,80); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+          doc.text(item.ss.toUpperCase(), ML+3, y+4.3);
+          y += 7;
+        }
+
+        if (y > H-20) { doc.addPage(); y = MT; }
+
+        const rowH = 9;
+        const nivChosen = evals[item.cr.id] || null;
+
+        if (idx%2===0){ doc.setFillColor(252,251,249); doc.rect(ML,y,CW,rowH,'F'); }
+        doc.setDrawColor(220,215,208); doc.setLineWidth(0.15);
+        doc.rect(ML,y,CW,rowH,'S');
+
+        // Numéro
+        doc.setTextColor(150,146,140); doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+        doc.text('C'+String(idx+1).padStart(2,'0'), ML+1.5, y+5.8);
+
+        // Label
+        doc.setTextColor(28,26,22); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+        const lbl = doc.splitTextToSize(item.cr.label||'', labelW-10);
+        doc.text(lbl[0]||(item.cr.label||''), ML+9, y+5.5);
+
+        // Niveaux
+        PDF_NIVEAUX.forEach(function(niv, ni) {
+          const nx = ML + labelW + ni*nivW;
+          doc.setDrawColor(220,215,208); doc.line(nx, y, nx, y+rowH);
+          const chosen = (nivChosen === niv.id);
+          if (chosen) {
+            doc.setFillColor(niv.color[0], niv.color[1], niv.color[2]);
+            doc.rect(nx, y, nivW, rowH, 'F');
+            doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+            doc.text(niv.label.substring(0,5).toUpperCase(), nx+nivW/2, y+5.5, { align:'center' });
+          } else {
+            doc.setTextColor(180,175,168); doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
+            doc.text(niv.label.substring(0,4), nx+nivW/2, y+5.5, { align:'center' });
+          }
+        });
+
+        y += rowH;
+      });
+
+      // Observation
+      if (y > H-25) { doc.addPage(); y = MT; }
+      y += 4;
+      const obs = evals['obs_' + atelier.id] || '';
+      doc.setDrawColor(200,195,188); doc.setLineWidth(0.25);
+      doc.rect(ML, y, CW, 14, 'S');
+      doc.setTextColor(120,115,108); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+      doc.text('OBSERVATIONS', ML+3, y+4);
+      if (obs) {
+        doc.setFont('helvetica','normal'); doc.setTextColor(60,57,52); doc.setFontSize(8);
+        const obsLines = doc.splitTextToSize(obs, CW-8);
+        doc.text(obsLines.slice(0,2), ML+3, y+9);
+      }
+      y += 16;
+    });
+
+    // Récap final
+    doc.addPage();
+    let y = MT;
+    doc.setFillColor(28,26,22);
+    doc.rect(ML, y, CW, 12, 'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('RÉCAPITULATIF GLOBAL', ML+3, y+7.5);
+    y += 16;
+
+    let totalPts = 0, totalCoeff = 0;
+    crit.ateliers.forEach(function(atelier) {
+      const allCr = [];
+      (atelier.sousSections||[]).forEach(function(ss){(ss.criteres||[]).forEach(function(cr){allCr.push(cr);});});
+      let pts=0, cnt=0;
+      allCr.forEach(function(cr){
+        const n=evals[cr.id];
+        if(n){pts+=PDF_NIVEAUX.find(function(x){return x.id===n;}).score||0; cnt++;}
+      });
+      const avg = cnt>0 ? pts/cnt : null;
+      const pct = avg!==null ? avg/20 : 0;
+
+      // Ligne atelier
+      doc.setFillColor(245,241,236);
+      doc.rect(ML, y, CW, 9, 'F');
+      doc.setDrawColor(200,195,188); doc.setLineWidth(0.2);
+      doc.rect(ML, y, CW, 9, 'S');
+      doc.setTextColor(28,26,22); doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+      doc.text((atelier.icon||'') + ' ' + atelier.nom, ML+3, y+6);
+      doc.setFont('helvetica','bold');
+      const scoreText = avg!==null ? avg.toFixed(1)+'/20' : '—';
+      doc.text(scoreText, W-MR-25, y+6);
+      doc.text('×'+atelier.coeff, W-MR-6, y+6, { align:'right' });
+
+      // Barre de progression
+      const barW = 40, barH = 3;
+      const bx = W-MR-70;
+      doc.setFillColor(230,225,218); doc.rect(bx, y+3, barW, barH, 'F');
+      if (avg!==null) {
+        const fc = avg>=12 ? [26,112,64] : avg>=8 ? [196,96,16] : [184,48,32];
+        doc.setFillColor(fc[0],fc[1],fc[2]);
+        doc.rect(bx, y+3, barW*pct, barH, 'F');
+      }
+      y += 10;
+
+      if (avg!==null){ totalPts += avg*(atelier.coeff||1); totalCoeff += (atelier.coeff||1); }
+    });
+
+    // Moyenne finale
+    y += 4;
+    const moyFinale = totalCoeff>0 ? (totalPts/totalCoeff).toFixed(2) : '—';
+    doc.setFillColor(28,26,22); doc.rect(ML, y, CW, 14, 'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+    doc.text('MOYENNE GÉNÉRALE PONDÉRÉE', ML+4, y+9);
+    doc.setFontSize(14);
+    doc.text(moyFinale + ' / 20', W-MR-4, y+9, { align:'right' });
+
+    // Numérotation
+    const pc = doc.getNumberOfPages();
+    for(let p=1;p<=pc;p++){
+      doc.setPage(p);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(160,155,148);
+      doc.text('FormApp · '+candidat.prenom+' '+candidat.nom+' · Page '+p+'/'+pc, W/2, H-6, { align:'center' });
+    }
+
+    const slug = (candidat.prenom+'-'+candidat.nom).toLowerCase().replace(/[^a-z0-9]/g,'-');
+    doc.save('evaluation_'+slug+'_'+(app.promo||'session')+'.pdf');
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PDF 3 : RÉCAPITULATIF GLOBAL — tous candidats, tous ateliers
+// ══════════════════════════════════════════════════════════════════
+function generateRecapGlobal() {
+  loadJsPDF(function(jsPDF) {
+    const crit = pdf_getCritData();
+    const app  = pdf_getAppData();
+    if (!crit || !app.candidats.length) { alert('Aucune donnée disponible.'); return; }
+
+    const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+    const W=297, H=210, ML=12, MR=12, MT=12;
+    const CW=W-ML-MR;
+
+    let y = MT;
+
+    // En-tête
+    doc.setFillColor(28,26,22); doc.rect(ML,y,CW,12,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+    doc.text('FORMAPP · Récapitulatif de session', ML+3, y+5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    const promoTxt2 = [app.promo, app.date, app.formateur].filter(Boolean).join(' · ');
+    doc.text(promoTxt2, ML+3, y+10);
+    doc.setFontSize(7.5);
+    doc.text('Généré le ' + new Date().toLocaleDateString('fr-FR'), W-MR-3, y+10, { align:'right' });
+    y += 15;
+
+    // Tableau
+    const actifs = app.candidats.filter(function(c){ return c.statut !== 'absent'; });
+    const nbAt = crit.ateliers.length;
+    const candColW = 38;
+    const atColW = (CW - candColW - 20) / nbAt; // 20 pour col moyenne
+    const rowH = 9;
+
+    // Entêtes colonnes
+    doc.setFillColor(237,233,226);
+    doc.rect(ML, y, CW, rowH, 'F');
+    doc.setDrawColor(200,195,188); doc.setLineWidth(0.2);
+    doc.rect(ML, y, CW, rowH, 'S');
+    doc.setTextColor(90,87,80); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+    doc.text('Candidat', ML+3, y+6);
+
+    crit.ateliers.forEach(function(at, i) {
+      const x = ML + candColW + i*atColW;
+      doc.line(x, y, x, y+rowH);
+      const shortName = at.nom.length>14 ? at.nom.substring(0,13)+'…' : at.nom;
+      doc.text(shortName, x+2, y+4);
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(120,115,108);
+      doc.text('×'+at.coeff, x+2, y+8);
+      doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(90,87,80);
+    });
+
+    // Col moyenne
+    const mx = ML + candColW + nbAt*atColW;
+    doc.line(mx, y, mx, y+rowH);
+    doc.text('MOY.', mx+2, y+6);
+    y += rowH;
+
+    // Lignes candidats
+    actifs.forEach(function(cand, ci) {
+      if (y > H-20) { doc.addPage(); y = MT; }
+
+      if (ci%2===0){ doc.setFillColor(252,251,249); } else { doc.setFillColor(255,255,255); }
+      doc.rect(ML, y, CW, rowH, 'F');
+      doc.setDrawColor(220,215,208); doc.setLineWidth(0.15);
+      doc.rect(ML, y, CW, rowH, 'S');
+
+      doc.setTextColor(28,26,22); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+      doc.text(cand.prenom+' '+cand.nom, ML+2, y+5.5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(120,115,108);
+      doc.text(cand.id, ML+2, y+8.5);
+
+      const evals = (crit.evaluations && crit.evaluations[cand.id]) || {};
+      let totalPts=0, totalCoeff=0;
+
+      crit.ateliers.forEach(function(at, i) {
+        const x = ML + candColW + i*atColW;
+        doc.line(x, y, x, y+rowH);
+
+        const allCr = [];
+        (at.sousSections||[]).forEach(function(ss){(ss.criteres||[]).forEach(function(cr){allCr.push(cr);});});
+        let pts=0, cnt=0;
+        allCr.forEach(function(cr){
+          const n=evals[cr.id];
+          if(n){pts+=PDF_NIVEAUX.find(function(x){return x.id===n;}).score||0; cnt++;}
+        });
+        const avg = cnt>0 ? pts/cnt : null;
+        if (avg!==null){ totalPts+=avg*(at.coeff||1); totalCoeff+=(at.coeff||1); }
+
+        if (avg!==null) {
+          const fc = avg>=12 ? [26,112,64] : avg>=8 ? [196,96,16] : [184,48,32];
+          doc.setFillColor(fc[0]+100, fc[1]+100, fc[2]+100);
+          doc.rect(x+1, y+1, atColW-2, rowH-2, 'F');
+          doc.setTextColor(fc[0]-20, fc[1]-20, fc[2]-20);
+          doc.setFont('helvetica','bold'); doc.setFontSize(8);
+          doc.text(avg.toFixed(1), x+atColW/2, y+6, { align:'center' });
+        } else {
+          doc.setTextColor(180,175,168); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+          doc.text('—', x+atColW/2, y+6, { align:'center' });
+        }
+      });
+
+      // Moyenne
+      doc.line(mx, y, mx, y+rowH);
+      const moy = totalCoeff>0 ? totalPts/totalCoeff : null;
+      if (moy!==null) {
+        const fc = moy>=12 ? [26,112,64] : moy>=8 ? [196,96,16] : [184,48,32];
+        doc.setFillColor(fc[0], fc[1], fc[2]);
+        doc.rect(mx+0.5, y+0.5, 19, rowH-1, 'F');
+        doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+        doc.text(moy.toFixed(1), mx+10, y+6.5, { align:'center' });
+      } else {
+        doc.setTextColor(180,175,168); doc.text('—', mx+10, y+6.5, { align:'center' });
+      }
+
+      // Statut
+      const statutColors = { admis:[26,112,64], refuse:[184,48,32], 'en-cours':[26,61,138], absent:[120,115,108] };
+      const sc = statutColors[cand.statut] || [120,115,108];
+      doc.setFillColor(sc[0]+80, sc[1]+80, sc[2]+80);
+      doc.rect(W-MR-12, y+2, 10, rowH-4, 'F');
+      doc.setTextColor(sc[0], sc[1], sc[2]); doc.setFont('helvetica','bold'); doc.setFontSize(5.5);
+      const sLabel = cand.statut==='admis'?'ADMIS':cand.statut==='refuse'?'REFUSÉ':'EN COURS';
+      doc.text(sLabel, W-MR-7, y+6, { align:'center' });
+
+      y += rowH;
+    });
+
+    // Numéros de page
+    const pc=doc.getNumberOfPages();
+    for(let p=1;p<=pc;p++){
+      doc.setPage(p);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(160,155,148);
+      doc.text('FormApp · Récapitulatif · '+(app.promo||'session')+' · Page '+p+'/'+pc, W/2, H-5, { align:'center' });
+    }
+
+    const slug=(app.promo||'session').replace(/[^a-zA-Z0-9]/g,'-');
+    doc.save('recap_global_'+slug+'.pdf');
+  });
+}
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', function() {
