@@ -377,51 +377,47 @@ function checkAuth() {
   const loginVal = (document.getElementById('authLogin')?.value || '').trim();
   const targetModule = pendingModule;
 
-  let authOk = false;
-  let formateurInfo = null;
-
-  if (targetModule === 'encadrant') {
-    if (loginVal) {
-      // Mode compte formateur individuel : vérifier dans la liste des formateurs
-      // Les formateurs sont stockés dans localStorage par l'admin
-      try {
-        const fmtList = JSON.parse(localStorage.getItem('formapp_formateurs') || '[]');
-        const f = fmtList.find(function(x) {
-          return x.login === loginVal.toLowerCase()
-              && x.password === input
-              && x.actif !== false;
-        });
-        if (f) {
-          authOk = true;
-          formateurInfo = f;
-          // Enregistrer dernier accès
-          f.lastAccess = new Date().toISOString();
-          localStorage.setItem('formapp_formateurs', JSON.stringify(fmtList));
-        }
-      } catch(e) {}
-    } else {
-      // Mode mot de passe commun encadrant
-      authOk = (input === PASSWORDS[targetModule]);
-    }
-  } else {
-    // Admin : mot de passe unique
-    authOk = (input === PASSWORDS[targetModule]);
+  if (targetModule === 'encadrant' && loginVal) {
+    // Vérification compte formateur individuel
+    // Le localStorage est partagé sur le même domaine : on le lit directement
+    try {
+      const fmtList = JSON.parse(localStorage.getItem('formapp_formateurs') || '[]');
+      const f = fmtList.find(function(x) {
+        return x.login === loginVal.toLowerCase().trim()
+            && x.password === input
+            && x.actif !== false;
+      });
+      if (f) {
+        f.lastAccess = new Date().toISOString();
+        localStorage.setItem('formapp_formateurs', JSON.stringify(fmtList));
+        sessionStorage.setItem('formapp_fmt_info', JSON.stringify(f));
+        setAuth(targetModule);
+        closeAuth();
+        openModule(targetModule);
+        return;
+      }
+    } catch(e) { console.warn('Erreur lecture formateurs:', e); }
+    // Identifiant saisi mais non trouvé
+    const inp = document.getElementById('authInput');
+    inp.classList.add('error');
+    document.getElementById('authError').textContent = 'Identifiant ou mot de passe incorrect.';
+    inp.value = '';
+    setTimeout(function() { inp.classList.remove('error'); }, 600);
+    setTimeout(function() { inp.focus(); }, 100);
+    return;
   }
 
-  if (authOk) {
-    setAuth(targetModule);
-    if (formateurInfo) {
-      // Stocker les infos du formateur connecté pour les afficher
-      sessionStorage.setItem('formapp_fmt_info', JSON.stringify(formateurInfo));
-    }
+  // Vérification mot de passe commun (encadrant sans login, ou admin)
+  const expected = PASSWORDS[targetModule];
+  if (input === expected) {
+    const targetCopy = targetModule;
+    setAuth(targetCopy);
     closeAuth();
-    openModule(targetModule);
+    openModule(targetCopy);
   } else {
     const inp = document.getElementById('authInput');
     inp.classList.add('error');
-    document.getElementById('authError').textContent = loginVal
-      ? 'Identifiant ou mot de passe incorrect.'
-      : 'Mot de passe incorrect.';
+    document.getElementById('authError').textContent = 'Mot de passe incorrect.';
     inp.value = '';
     setTimeout(function() { inp.classList.remove('error'); }, 600);
     setTimeout(function() { inp.focus(); }, 100);
@@ -432,6 +428,24 @@ function closeAuth() {
   document.getElementById('authModal').classList.remove('open');
   pendingModule = null;
 }
+
+// ── DEBUG : vérifier le contenu des formateurs (console navigateur) ──
+function debugFormateurs() {
+  try {
+    const list = JSON.parse(localStorage.getItem('formapp_formateurs') || '[]');
+    console.log('[FormApp] Formateurs enregistrés (' + list.length + ') :');
+    list.forEach(function(f) {
+      console.log('  login=' + f.login + ' | pwd=' + f.password + ' | actif=' + f.actif + ' | role=' + f.role);
+    });
+    if (list.length === 0) console.warn('[FormApp] Aucun formateur trouvé dans localStorage. Avez-vous bien créé le compte dans Admin ?');
+    return list;
+  } catch(e) {
+    console.error('[FormApp] Erreur lecture localStorage:', e);
+    return [];
+  }
+}
+// Appel auto au chargement pour faciliter le debug
+console.log('[FormApp] Tapez debugFormateurs() pour voir les comptes formateurs');
 
 // ═══════════════════════════════════════════════════════
 // DÉCONNEXION STRICTE
