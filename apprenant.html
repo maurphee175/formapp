@@ -511,12 +511,22 @@ function checkPassword(candidat, pwd) {
 // ══════════════════════════════════════════════════════════
 // CONNEXION
 // ══════════════════════════════════════════════════════════
-function doLogin() {
+async function doLogin() {
   const id  = document.getElementById('loginId').value.trim();
   const pwd = document.getElementById('loginPwd').value;
   const errEl = document.getElementById('loginError');
 
   if (!id || !pwd) { errEl.textContent = 'Remplissez tous les champs.'; return; }
+
+  // Si aucun candidat en local, essayer de charger depuis Supabase
+  let appData = getAppData();
+  if (!appData.candidats || appData.candidats.length === 0) {
+    if (typeof pullFromSupabase === 'function') {
+      errEl.textContent = 'Chargement des données...';
+      await pullFromSupabase();
+      errEl.textContent = '';
+    }
+  }
 
   const cand = findCandidat(id);
 
@@ -834,8 +844,9 @@ window.addEventListener('message', e => {
 
 // ══════════════════════════════════════════════════════════
 // BOOT — vérifier session existante
+// Attend Supabase si localStorage vide
 // ══════════════════════════════════════════════════════════
-(function init() {
+async function init() {
   // Mode edition activé depuis l'admin ?
   if (sessionStorage.getItem('formapp_edit_mode') === '1') {
     sessionStorage.removeItem('formapp_edit_mode');
@@ -849,6 +860,16 @@ window.addEventListener('message', e => {
     renderResources();
     return;
   }
+
+  // Si localStorage vide, attendre Supabase avant de continuer
+  const appData = getAppData();
+  if (!appData.candidats || appData.candidats.length === 0) {
+    if (typeof pullFromSupabase === 'function') {
+      const ok = await pullFromSupabase();
+      if (ok) console.log('[Apprenant] Données chargées depuis Supabase');
+    }
+  }
+
   // Session stagiaire existante ?
   const sess = sessionStorage.getItem(SESSION_KEY);
   if (sess) {
@@ -860,7 +881,9 @@ window.addEventListener('message', e => {
   }
   // Sinon afficher login
   document.getElementById('screenLogin').style.display = 'flex';
-})();
+}
+
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>

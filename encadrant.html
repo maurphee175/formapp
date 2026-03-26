@@ -259,12 +259,15 @@ function subscribeRealtime(cb) {
 
 // Init au chargement
 document.addEventListener('DOMContentLoaded', async function() {
+  // Toujours démarrer le boot local d'abord
+  if (typeof boot === 'function') boot();
+  // Puis synchroniser Supabase et re-rendre si données plus récentes
   const ok = await pullFromSupabase();
   if (ok) {
     console.log('[Supabase] ✓ Données synchronisées');
+    if (typeof boot === 'function') boot();
     if (typeof renderDashboard === 'function') renderDashboard();
     if (typeof render === 'function') render();
-    if (typeof boot === 'function') boot();
   }
 });
 </script>
@@ -1146,7 +1149,7 @@ function render() {
   renderRight();
 }
 
-boot();
+// boot() appelé après chargement Supabase (voir DOMContentLoaded)
 render();
 
 // ══════════════════════════════════════════════════════

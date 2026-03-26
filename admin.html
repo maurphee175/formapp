@@ -335,7 +335,14 @@ async function pullFromSupabase() {
     if (data.crit_data)   localStorage.setItem(CRIT_KEY_SB,   data.crit_data);
     if (data.qcm_results) localStorage.setItem(QCM_KEY_SB,    data.qcm_results);
     if (data.qcm_codes)   localStorage.setItem(CODES_KEY_SB,  data.qcm_codes);
-    if (data.fmt_data)    localStorage.setItem(FMT_KEY_SB,    data.fmt_data);
+    if (data.fmt_data) {
+      localStorage.setItem(FMT_KEY_SB, data.fmt_data);
+      // Notifier le parent (index.html)
+      try {
+        if (window.parent !== window)
+          window.parent.postMessage({ type: 'formapp-formateurs-update', data: data.fmt_data }, '*');
+      } catch(e) {}
+    }
     return true;
   } catch(e) { console.warn('[Supabase pull]', e.message); return false; }
 }
@@ -2454,18 +2461,56 @@ function getFormateurs() {
 }
 
 function saveFormateurs(list) {
-  localStorage.setItem(FMT_KEY, JSON.stringify(list));
-  if (typeof saveAndSync === 'function') saveAndSync();
+  const json = JSON.stringify(list);
+  localStorage.setItem(FMT_KEY, json);
+  // Push immédiat vers Supabase avec les données fmt_data à jour
+  if (typeof _sb !== 'undefined' && _sb) {
+    _sb.from('formapp_sessions').upsert({
+      session_key: getSessionKey(),
+      fmt_data: json,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'session_key' }).then(function(res) {
+      if (res.error) console.warn('[Supabase] saveFormateurs:', res.error.message);
+      else console.log('[Supabase] Formateurs synchronisés (' + list.length + ')');
+    });
+  }
   // Sync vers le parent (index.html) pour contourner l'isolation localStorage iframe
   try {
     if (window.parent !== window) {
-      window.parent.postMessage({ type: 'formapp-formateurs-update', data: JSON.stringify(list) }, '*');
+      window.parent.postMessage({ type: 'formapp-formateurs-update', data: json }, '*');
     }
   } catch(e) {}
 }
 
+// getFormateurs essaie d'abord Supabase si localStorage vide
+async function getFormateursFromSupabase() {
+  if (!_sb) return null;
+  try {
+    const { data, error } = await _sb.from('formapp_sessions')
+      .select('fmt_data').eq('session_key', getSessionKey()).single();
+    if (error || !data || !data.fmt_data) return null;
+    localStorage.setItem(FMT_KEY, data.fmt_data);
+    return JSON.parse(data.fmt_data);
+  } catch(e) { return null; }
+}
+
 function renderFormateursView() {
-  const list = getFormateurs();
+  // Si localStorage vide, essayer de charger depuis Supabase
+  let list = getFormateurs();
+  if (list.length === 0 && typeof getFormateursFromSupabase === 'function') {
+    getFormateursFromSupabase().then(function(remoteList) {
+      if (remoteList && remoteList.length > 0) {
+        renderFormateursViewWithData(remoteList);
+      } else {
+        renderFormateursViewWithData([]);
+      }
+    });
+    return;
+  }
+  renderFormateursViewWithData(list);
+}
+
+function renderFormateursViewWithData(list) {
 
   // Stats
   const stats = document.getElementById('fmt_stats');
