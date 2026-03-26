@@ -281,157 +281,90 @@
      SUPABASE CONFIG — Remplacez les deux valeurs ci-dessous
      par celles trouvées dans Supabase > Settings > API
 ═══════════════════════════════════════════════════ -->
+
+
+
+<!-- ── SUPABASE ── -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ┌─────────────────────────────────────────────────────┐
-// │  ÉTAPE 5 — Collez vos valeurs Supabase ici          │
-// └─────────────────────────────────────────────────────┘
-const SUPABASE_URL  = 'https://VOTRE_URL.supabase.co';   // ← remplacez
-const SUPABASE_ANON_KEY = 'VOTRE_CLE_ANON';             // ← remplacez
+const SUPABASE_URL  = 'https://dxjdirhfcdtvdsayhigm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_7sHrBN4HyQ5M0MxxQUbE1g_GyP6Qw1T';
 
-// ── Initialisation du client Supabase ──
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const _sb = (function() {
+  try { return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  catch(e) { console.warn('[Supabase] Init failed:', e); return null; }
+})();
 
-// ── Clés de stockage local ──
 const SHARED_KEY_SB = 'formapp_data';
 const CRIT_KEY_SB   = 'formapp_criteres';
 const QCM_KEY_SB    = 'formapp_qcm_results';
 const CODES_KEY_SB  = 'formapp_qcm_codes';
-const SESSION_TABLE = 'formapp_sessions';   // table Supabase unique
+const FMT_KEY_SB    = 'formapp_formateurs';
+const SESSION_TABLE = 'formapp_sessions';
 
-// ════════════════════════════════════════════════════════
-// COUCHE DE SYNCHRONISATION
-// Principe : localStorage = cache immédiat
-//            Supabase     = source de vérité partagée
-// ════════════════════════════════════════════════════════
-
-// Identifiant de session unique (clé de partitionnement des données)
-// Utilise la promo+date ou un UUID fixe stocké localement
 function getSessionKey() {
   let k = localStorage.getItem('formapp_session_key');
-  if (!k) {
-    k = 'session_' + Date.now();
-    localStorage.setItem('formapp_session_key', k);
-  }
+  if (!k) { k = 'session_' + Date.now(); localStorage.setItem('formapp_session_key', k); }
   return k;
 }
 
-// ── PUSH : envoie les données locales vers Supabase ──
 async function pushToSupabase() {
+  if (!_sb) return;
   try {
-    const sessionKey = getSessionKey();
     const payload = {
-      session_key: sessionKey,
+      session_key: getSessionKey(),
       shared_data: localStorage.getItem(SHARED_KEY_SB) || '{}',
       crit_data:   localStorage.getItem(CRIT_KEY_SB)   || '{}',
       qcm_results: localStorage.getItem(QCM_KEY_SB)    || '{}',
       qcm_codes:   localStorage.getItem(CODES_KEY_SB)  || '{}',
+      fmt_data:    localStorage.getItem(FMT_KEY_SB)    || '[]',
       updated_at:  new Date().toISOString(),
     };
     const { error } = await _sb.from(SESSION_TABLE).upsert(payload, { onConflict: 'session_key' });
     if (error) console.warn('[Supabase push]', error.message);
-  } catch(e) { console.warn('[Supabase push error]', e); }
+  } catch(e) { console.warn('[Supabase push]', e.message); }
 }
 
-// ── PULL : charge les données depuis Supabase vers le localStorage ──
 async function pullFromSupabase() {
+  if (!_sb) return false;
   try {
-    const sessionKey = getSessionKey();
     const { data, error } = await _sb.from(SESSION_TABLE)
-      .select('*')
-      .eq('session_key', sessionKey)
-      .single();
-    if (error) { console.warn('[Supabase pull]', error.message); return false; }
-    if (!data) return false;
-
-    if (data.shared_data && data.shared_data !== '{}')
-      localStorage.setItem(SHARED_KEY_SB, data.shared_data);
-    if (data.crit_data && data.crit_data !== '{}')
-      localStorage.setItem(CRIT_KEY_SB, data.crit_data);
-    if (data.qcm_results && data.qcm_results !== '{}')
-      localStorage.setItem(QCM_KEY_SB, data.qcm_results);
-    if (data.qcm_codes && data.qcm_codes !== '{}')
-      localStorage.setItem(CODES_KEY_SB, data.qcm_codes);
+      .select('*').eq('session_key', getSessionKey()).single();
+    if (error || !data) return false;
+    if (data.shared_data) localStorage.setItem(SHARED_KEY_SB, data.shared_data);
+    if (data.crit_data)   localStorage.setItem(CRIT_KEY_SB,   data.crit_data);
+    if (data.qcm_results) localStorage.setItem(QCM_KEY_SB,    data.qcm_results);
+    if (data.qcm_codes)   localStorage.setItem(CODES_KEY_SB,  data.qcm_codes);
+    if (data.fmt_data)    localStorage.setItem(FMT_KEY_SB,    data.fmt_data);
     return true;
-  } catch(e) { console.warn('[Supabase pull error]', e); return false; }
+  } catch(e) { console.warn('[Supabase pull]', e.message); return false; }
 }
 
-// ── Abonnement temps réel : actualise si un autre appareil modifie ──
-function subscribeRealtime(onUpdate) {
-  const sessionKey = getSessionKey();
-  _sb.channel('formapp-realtime')
-    .on('postgres_changes', {
-      event: 'UPDATE',
-      schema: 'public',
-      table: SESSION_TABLE,
-      filter: `session_key=eq.${sessionKey}`,
-    }, async (payload) => {
-      const d = payload.new;
-      if (d.shared_data) localStorage.setItem(SHARED_KEY_SB, d.shared_data);
-      if (d.crit_data)   localStorage.setItem(CRIT_KEY_SB,   d.crit_data);
-      if (d.qcm_results) localStorage.setItem(QCM_KEY_SB,    d.qcm_results);
-      if (d.qcm_codes)   localStorage.setItem(CODES_KEY_SB,  d.qcm_codes);
-      if (typeof onUpdate === 'function') onUpdate();
-    })
-    .subscribe();
-}
-
-// ── saveAndSync : remplace les saveData() existants ──
-// Appeler après chaque modification locale pour syncer vers Supabase
-let _syncTimer = null;
 function saveAndSync() {
-  // Debounce : attend 800ms d'inactivité avant d'envoyer
-  clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(() => pushToSupabase(), 800);
+  pushToSupabase();
 }
 
-// ── Auto-pull au chargement de la page ──
-(async function initSupabase() {
-  // Ne pas lancer si Supabase non configuré
-  if (SUPABASE_URL.includes('VOTRE_URL')) {
-    console.info('[FormApp] Mode localStorage uniquement — Supabase non configuré');
-    return;
-  }
-  // Attendre que le body soit disponible
-  if (!document.body) {
-    document.addEventListener('DOMContentLoaded', function() { initSupabase(); });
-    return;
-  }
-  const indicator = document.createElement('div');
-  indicator.id = 'sb-indicator';
-  indicator.style.cssText = 'position:fixed;bottom:60px;right:20px;z-index:9999;' +
-    'background:rgba(10,12,16,0.8);color:#4ade80;padding:8px 14px;' +
-    'border-radius:8px;font-family:monospace;font-size:11px;' +
-    'border:1px solid rgba(74,222,128,0.3);display:none;';
-  document.body.appendChild(indicator);
+function subscribeRealtime(cb) {
+  if (!_sb) return;
+  try {
+    _sb.channel('formapp').on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: SESSION_TABLE },
+      function(payload) { if (payload.new && payload.new.session_key === getSessionKey()) cb(payload.new); }
+    ).subscribe();
+  } catch(e) {}
+}
 
-  function showIndicator(msg, color='#4ade80') {
-    indicator.style.color = color;
-    indicator.textContent = msg;
-    indicator.style.display = 'block';
-    setTimeout(() => { indicator.style.display = 'none'; }, 2500);
-  }
-
-  showIndicator('⟳ Synchronisation...', '#fbbf24');
+// Init au chargement
+document.addEventListener('DOMContentLoaded', async function() {
   const ok = await pullFromSupabase();
   if (ok) {
-    showIndicator('✓ Données synchronisées');
-    // Déclencher un refresh si la page a déjà rendu des données
+    console.log('[Supabase] ✓ Données synchronisées');
     if (typeof renderDashboard === 'function') renderDashboard();
     if (typeof render === 'function') render();
-    if (typeof app_init === 'function') app_init();
+    if (typeof boot === 'function') boot();
   }
-
-  // Écouter les changements en temps réel
-  subscribeRealtime(() => {
-    showIndicator('↻ Mise à jour reçue');
-    if (typeof renderDashboard === 'function') renderDashboard();
-    if (typeof render === 'function') render();
-    if (typeof app_init === 'function') app_init();
-  });
-})();
+});
 </script>
-
 </head>
 <body>
 

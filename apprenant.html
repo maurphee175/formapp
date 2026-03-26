@@ -239,6 +239,88 @@ body { font-family:'Instrument Sans',sans-serif; background:var(--bg); color:var
   .rev-card { flex-direction:column; text-align:center; gap:14px; }
 }
 </style>
+
+<!-- ── SUPABASE ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL  = 'https://dxjdirhfcdtvdsayhigm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_7sHrBN4HyQ5M0MxxQUbE1g_GyP6Qw1T';
+
+const _sb = (function() {
+  try { return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  catch(e) { console.warn('[Supabase] Init failed:', e); return null; }
+})();
+
+const SHARED_KEY_SB = 'formapp_data';
+const CRIT_KEY_SB   = 'formapp_criteres';
+const QCM_KEY_SB    = 'formapp_qcm_results';
+const CODES_KEY_SB  = 'formapp_qcm_codes';
+const FMT_KEY_SB    = 'formapp_formateurs';
+const SESSION_TABLE = 'formapp_sessions';
+
+function getSessionKey() {
+  let k = localStorage.getItem('formapp_session_key');
+  if (!k) { k = 'session_' + Date.now(); localStorage.setItem('formapp_session_key', k); }
+  return k;
+}
+
+async function pushToSupabase() {
+  if (!_sb) return;
+  try {
+    const payload = {
+      session_key: getSessionKey(),
+      shared_data: localStorage.getItem(SHARED_KEY_SB) || '{}',
+      crit_data:   localStorage.getItem(CRIT_KEY_SB)   || '{}',
+      qcm_results: localStorage.getItem(QCM_KEY_SB)    || '{}',
+      qcm_codes:   localStorage.getItem(CODES_KEY_SB)  || '{}',
+      fmt_data:    localStorage.getItem(FMT_KEY_SB)    || '[]',
+      updated_at:  new Date().toISOString(),
+    };
+    const { error } = await _sb.from(SESSION_TABLE).upsert(payload, { onConflict: 'session_key' });
+    if (error) console.warn('[Supabase push]', error.message);
+  } catch(e) { console.warn('[Supabase push]', e.message); }
+}
+
+async function pullFromSupabase() {
+  if (!_sb) return false;
+  try {
+    const { data, error } = await _sb.from(SESSION_TABLE)
+      .select('*').eq('session_key', getSessionKey()).single();
+    if (error || !data) return false;
+    if (data.shared_data) localStorage.setItem(SHARED_KEY_SB, data.shared_data);
+    if (data.crit_data)   localStorage.setItem(CRIT_KEY_SB,   data.crit_data);
+    if (data.qcm_results) localStorage.setItem(QCM_KEY_SB,    data.qcm_results);
+    if (data.qcm_codes)   localStorage.setItem(CODES_KEY_SB,  data.qcm_codes);
+    if (data.fmt_data)    localStorage.setItem(FMT_KEY_SB,    data.fmt_data);
+    return true;
+  } catch(e) { console.warn('[Supabase pull]', e.message); return false; }
+}
+
+function saveAndSync() {
+  pushToSupabase();
+}
+
+function subscribeRealtime(cb) {
+  if (!_sb) return;
+  try {
+    _sb.channel('formapp').on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: SESSION_TABLE },
+      function(payload) { if (payload.new && payload.new.session_key === getSessionKey()) cb(payload.new); }
+    ).subscribe();
+  } catch(e) {}
+}
+
+// Init au chargement
+document.addEventListener('DOMContentLoaded', async function() {
+  const ok = await pullFromSupabase();
+  if (ok) {
+    console.log('[Supabase] ✓ Données synchronisées');
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof render === 'function') render();
+    if (typeof boot === 'function') boot();
+  }
+});
+</script>
 </head>
 <body>
 
