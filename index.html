@@ -261,6 +261,16 @@ iframe.active { display: block; opacity: 1; }
     <div class="modal-icon" id="authIcon">🔒</div>
     <div class="modal-title" id="authTitle">Accès restreint</div>
     <div class="modal-sub" id="authSub">Entrez le mot de passe pour accéder à cet espace.</div>
+
+    <!-- Champ login formateur (visible seulement pour encadrant) -->
+    <div id="authLoginWrap" style="display:none;margin-bottom:0">
+      <input class="modal-input" id="authLogin" type="text"
+        placeholder="Identifiant (ex: j.dupont)"
+        autocomplete="username"
+        onkeydown="if(event.key==='Enter') document.getElementById('authInput').focus()"
+        style="margin-bottom:8px">
+    </div>
+
     <input class="modal-input" id="authInput" type="password"
       placeholder="Mot de passe"
       onkeydown="if(event.key==='Enter') checkAuth()">
@@ -337,7 +347,7 @@ function requireAuth(moduleId) {
   const icons  = { encadrant:'✏️', admin:'⚙️' };
   const labels = { encadrant:'Espace Encadrant', admin:'Administration' };
   const subs   = {
-    encadrant: 'Cet espace est réservé aux encadrants et formateurs.',
+    encadrant: 'Compte formateur : saisissez votre identifiant et mot de passe.',
     admin: 'Cet espace est réservé aux administrateurs.',
   };
   document.getElementById('authIcon').textContent  = icons[moduleId]  || '🔒';
@@ -346,22 +356,72 @@ function requireAuth(moduleId) {
   document.getElementById('authInput').value = '';
   document.getElementById('authError').textContent = '';
   document.getElementById('authInput').classList.remove('error');
+  // Afficher le champ login pour les formateurs (encadrant seulement)
+  const loginWrap = document.getElementById('authLoginWrap');
+  const loginInput = document.getElementById('authLogin');
+  if (moduleId === 'encadrant') {
+    loginWrap.style.display = 'block';
+    if (loginInput) loginInput.value = '';
+  } else {
+    loginWrap.style.display = 'none';
+  }
   document.getElementById('authModal').classList.add('open');
-  setTimeout(function() { document.getElementById('authInput').focus(); }, 150);
+  setTimeout(function() {
+    if (moduleId === 'encadrant' && loginInput) loginInput.focus();
+    else document.getElementById('authInput').focus();
+  }, 150);
 }
 
 function checkAuth() {
   const input    = document.getElementById('authInput').value;
-  const expected = PASSWORDS[pendingModule];
-  if (input === expected) {
-    const targetModule = pendingModule; // sauvegarder AVANT closeAuth qui remet null
+  const loginVal = (document.getElementById('authLogin')?.value || '').trim();
+  const targetModule = pendingModule;
+
+  let authOk = false;
+  let formateurInfo = null;
+
+  if (targetModule === 'encadrant') {
+    if (loginVal) {
+      // Mode compte formateur individuel : vérifier dans la liste des formateurs
+      // Les formateurs sont stockés dans localStorage par l'admin
+      try {
+        const fmtList = JSON.parse(localStorage.getItem('formapp_formateurs') || '[]');
+        const f = fmtList.find(function(x) {
+          return x.login === loginVal.toLowerCase()
+              && x.password === input
+              && x.actif !== false;
+        });
+        if (f) {
+          authOk = true;
+          formateurInfo = f;
+          // Enregistrer dernier accès
+          f.lastAccess = new Date().toISOString();
+          localStorage.setItem('formapp_formateurs', JSON.stringify(fmtList));
+        }
+      } catch(e) {}
+    } else {
+      // Mode mot de passe commun encadrant
+      authOk = (input === PASSWORDS[targetModule]);
+    }
+  } else {
+    // Admin : mot de passe unique
+    authOk = (input === PASSWORDS[targetModule]);
+  }
+
+  if (authOk) {
     setAuth(targetModule);
+    if (formateurInfo) {
+      // Stocker les infos du formateur connecté pour les afficher
+      sessionStorage.setItem('formapp_fmt_info', JSON.stringify(formateurInfo));
+    }
     closeAuth();
-    openModule(targetModule); // utiliser la copie sauvegardée
+    openModule(targetModule);
   } else {
     const inp = document.getElementById('authInput');
     inp.classList.add('error');
-    document.getElementById('authError').textContent = 'Mot de passe incorrect.';
+    document.getElementById('authError').textContent = loginVal
+      ? 'Identifiant ou mot de passe incorrect.'
+      : 'Mot de passe incorrect.';
     inp.value = '';
     setTimeout(function() { inp.classList.remove('error'); }, 600);
     setTimeout(function() { inp.focus(); }, 100);
